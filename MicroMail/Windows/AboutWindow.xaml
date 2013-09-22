@@ -1,0 +1,9 @@
+﻿<Window x:Class="MicroMail.Windows.AboutWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Icon="../Graphics/windowIcon.png"
+        Title="About" Height="300" Width="300">
+    <Grid>
+        <TextBlock Text="Program description." />
+    </Grid>
+</Window>

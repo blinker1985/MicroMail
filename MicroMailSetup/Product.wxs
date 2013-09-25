@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
+	<Product Id="*" Name="Micro Mail" Language="1033" Version="0.1.0.0" Manufacturer="Blinker" UpgradeCode="486abc65-6a4d-4761-909c-a2328faf851f">
+		<Package InstallerVersion="200" Compressed="yes" InstallScope="perMachine" />
+
+		<MajorUpgrade DowngradeErrorMessage="A newer version of [ProductName] is already installed." />
+    
+    <!-- Embed .cab archive into .msi file. -->
+    <Media Id="1" Cabinet="cab1.cab" EmbedCab="yes" />
+
+ 		<Directory Id="TARGETDIR" Name="SourceDir">
+			<Directory Id="ProgramFilesFolder">
+				<Directory Id="INSTALLFOLDER" Name="MicroMail" />
+			</Directory>
+      
+      <!-- Add to startup programs if user selects the proper checkbox. -->
+      <Directory Id="StartupFolder" Name="Startup">
+        <Component Id="StartUpComp" Guid="AC53E0BA-F29C-4862-B99F-93AE6AACE18F">
+          <Condition>RUNONSTARTUP</Condition>
+          <Shortcut Id="StartUpShortcut" Name="Micro Mail" Target="[INSTALLFOLDER]MicroMail.exe" WorkingDirectory="INSTALLFOLDER">
+            <Icon Id="StartupIcon" SourceFile="./icon.ico"/>
+          </Shortcut>
+          <RemoveFolder Id="StartupFolder" On="uninstall" />
+          <RegistryKey Root="HKCU" Key="Software\[ProductName]" ForceDeleteOnUninstall="yes">
+            <RegistryValue Name="RunOnStartup" Value="1" Type="integer" KeyPath="yes" />
+          </RegistryKey>
+        </Component>
+      </Directory>
+    
+      <!-- Create Desktop Icon -->
+      <Directory Id="DesktopFolder" Name="Desktop">
+        <Component Id="DesktopComp" Guid="CBCC80F1-630E-4944-B3B5-1C4AEBE72480">
+          <Condition>CREATEDESKTOPICON</Condition>
+          <Shortcut Id="DesktopShortcut" Name="Micro Mail" Target="[INSTALLFOLDER]MicroMail.exe" WorkingDirectory="INSTALLFOLDER">
+            <Icon Id="DesktopIcon" SourceFile="./icon.ico"/>
+          </Shortcut>
+          <RegistryKey Root="HKCU" Key="Software\[ProductName]" ForceDeleteOnUninstall="yes">
+            <RegistryValue Name="CreateDesktopIcon" Value="1" Type="integer" KeyPath="yes" />
+          </RegistryKey>
+        </Component>
+      </Directory>
+    
+		</Directory>
+      
+		<Feature Id="ProductFeature" Title="Micro Mail Setup" Level="1">
+			<ComponentGroupRef Id="ProductComponents" />
+      <ComponentRef Id="StartUpComp" />
+      <ComponentRef Id="DesktopComp" />
+      <ComponentRef Id="MicroMail.exe" />
+		</Feature>
+    
+    <Property Id="WIXUI_INSTALLDIR" Value="INSTALLFOLDER" />
+    
+    <CustomAction Id="LaunchApplication" FileKey="MicroMail.exe" ExeCommand="" Execute="immediate" Return="asyncNoWait" Impersonate="yes" />
+    <UIRef Id="CustomWixUI_InstallDir" />
+    <UI>
+      <Publish Dialog="CustomExitDialog" Order="1" Control="Finish" Event="DoAction" Value="LaunchApplication">
+        RUNONSETUPEXIT
+      </Publish>
+    </UI>
+	</Product>
+
+	<Fragment>
+		<ComponentGroup Id="ProductComponents" Directory="INSTALLFOLDER" >
+			<Component>
+        <File Id="MicroMail.exe" Source="$(var.MicroMail.TargetDir)" />
+			</Component>
+      <Component>
+        <File Id="AxInterop.MSTSCLib.dll" Source="$(var.MicroMail.TargetDir)" />
+      </Component>
+      <Component>
+        <File Id="Ninject.dll" Source="$(var.MicroMail.TargetDir)" />
+      </Component>
+      <Component>
+        <File Id="System.Windows.Controls.Input.Toolkit.dll" Source="$(var.MicroMail.TargetDir)" />
+      </Component>    
+      <Component>
+        <File Id="System.Windows.Controls.Layout.Toolkit.dll" Source="$(var.MicroMail.TargetDir)" />
+      </Component>    
+      <Component>
+        <File Id="WPFToolkit.dll" Source="$(var.MicroMail.TargetDir)" />
+      </Component>    
+		</ComponentGroup>
+	</Fragment>
+  
+</Wix>

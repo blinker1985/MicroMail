@@ -13,6 +13,7 @@
     <FileAlignment>512</FileAlignment>
     <ProjectTypeGuids>{60dc8134-eba5-43b8-bcc9-bb4bc16c2548};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
     <WarningLevel>4</WarningLevel>
+    <IsWebBootstrapper>false</IsWebBootstrapper>
     <PublishUrl>publish\</PublishUrl>
     <Install>true</Install>
     <InstallFrom>Disk</InstallFrom>
@@ -25,7 +26,6 @@
     <MapFileExtensions>true</MapFileExtensions>
     <ApplicationRevision>0</ApplicationRevision>
     <ApplicationVersion>1.0.0.%2a</ApplicationVersion>
-    <IsWebBootstrapper>false</IsWebBootstrapper>
     <UseApplicationTrust>false</UseApplicationTrust>
     <BootstrapperEnabled>true</BootstrapperEnabled>
   </PropertyGroup>
@@ -104,11 +104,13 @@
     <Compile Include="Infrastructure\Helpers\AccountHelper.cs" />
     <Compile Include="Infrastructure\Helpers\EmailDecodingHelper.cs" />
     <Compile Include="Infrastructure\Helpers\IdGenerator.cs" />
+    <Compile Include="Infrastructure\Logger.cs" />
     <Compile Include="Infrastructure\Messaging\Callback.cs" />
     <Compile Include="Infrastructure\Messaging\Events\FetchMailBodyEvent.cs" />
     <Compile Include="Infrastructure\Messaging\EventBus.cs" />
     <Compile Include="Infrastructure\Messaging\Events\PlainServiceEvents.cs" />
     <Compile Include="Infrastructure\Messaging\Events\PlainWindowEvents.cs" />
+    <Compile Include="Infrastructure\Messaging\Events\ServiceStatusEvent.cs" />
     <Compile Include="Infrastructure\Messaging\Events\ShowMailWindowEvent.cs" />
     <Compile Include="Infrastructure\Messaging\IExecutable.cs" />
     <Compile Include="ApplicationWorker.cs" />
@@ -136,6 +138,7 @@
     <Compile Include="Services\Responses\RawObject.cs" />
     <Compile Include="Services\Responses\ResponseBase.cs" />
     <Compile Include="Services\Responses\SearchUnseenResponse.cs" />
+    <Compile Include="Services\ServiceStatusEnum.cs" />
     <Compile Include="Windows\AccountDialog.xaml.cs">
       <DependentUpon>AccountDialog.xaml</DependentUpon>
     </Compile>
@@ -218,14 +221,14 @@
     <None Include="App.config" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="Graphics\trayIcon.png" />
+    <EmbeddedResource Include="Graphics\trayIconNormal.png" />
   </ItemGroup>
   <ItemGroup>
-    <Resource Include="Graphics\mails.png" />
+    <EmbeddedResource Include="Graphics\trayIconUnread.png" />
     <Resource Include="Graphics\senderIcon.png" />
     <Resource Include="Graphics\subjectIcon.png" />
-    <Resource Include="Graphics\trayIconError.png" />
-    <Resource Include="Graphics\trayIconRefresh.png" />
+    <EmbeddedResource Include="Graphics\trayIconError.png" />
+    <EmbeddedResource Include="Graphics\trayIconRefresh.png" />
   </ItemGroup>
   <ItemGroup>
     <Resource Include="Graphics\windowIcon.png" />

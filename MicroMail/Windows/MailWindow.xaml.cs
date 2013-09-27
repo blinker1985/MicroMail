@@ -1,7 +1,11 @@
-﻿using System.ComponentModel;
+﻿using System;
+using System.ComponentModel;
+using System.Globalization;
 using System.IO;
 using System.Text;
+using System.Threading;
 using System.Windows;
+using System.Windows.Data;
 using System.Windows.Navigation;
 using MicroMail.Infrastructure.Messaging;
 using MicroMail.Infrastructure.Messaging.Events;
@@ -16,6 +20,7 @@ namespace MicroMail.Windows
     {
         private readonly EventBus _eventBus;
         private Stream _contentStream;
+        private bool _isRendered;
 
         public MailWindow(EventBus eventBus)
         {
@@ -66,14 +71,14 @@ namespace MicroMail.Windows
 
         private void EmailPropertyChangedHandler(object sender, PropertyChangedEventArgs propertyChangedEventArgs)
         {
-            RenderEmail();
+            if(!_isRendered) RenderEmail();
         }
 
         private void UpdateViewData()
         {
             if (Email.Body == null)
             {
-                _eventBus.Trigger(new FetchMailBodyEvent(Email));
+                FetchNewMail();
             }
             else
             {
@@ -82,6 +87,13 @@ namespace MicroMail.Windows
 
             DataContext = null;
             DataContext = this;
+        }
+
+        private void FetchNewMail()
+        {
+            // We don't have to wait for this operation to open window.
+            var thread = new Thread(() => _eventBus.Trigger(new FetchMailBodyEvent(Email)));
+            thread.Start();
         }
 
         private void RenderEmail()
@@ -96,7 +108,10 @@ namespace MicroMail.Windows
                                 .GetBytes(Email.Body);
             _contentStream = new MemoryStream(bytes);
 
-            MessageWebView.NavigateToStream(_contentStream);
+            //In case we're updated from non-UI thread.
+            Dispatcher.Invoke(() => MessageWebView.NavigateToStream(_contentStream));
+            _isRendered = true;
+            Email.IsRead = true;
         }
 
         private void MessageWebViewOnNavigated(object sender, NavigationEventArgs navigationEventArgs)
@@ -114,6 +129,32 @@ namespace MicroMail.Windows
             {
                 Email = e.Email;
             }
+        }
+    }
+
+    public class LoadingLabelVisibilityConverter : IValueConverter
+    {
+        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            return value != null ? Visibility.Collapsed : Visibility.Visible;
+        }
+
+        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            throw new NotImplementedException();
+        }
+    }
+
+    public class WebViewVisibilityConverter : IValueConverter
+    {
+        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            return value != null ? Visibility.Visible : Visibility.Hidden;
+        }
+
+        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            throw new NotImplementedException();
         }
     }
 }

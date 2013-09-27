@@ -10,5 +10,6 @@ namespace MicroMail.Services
         void Start(Account account);
         void Stop();
         void FetchMailBody(EmailModel email);
+        ServiceStatusEnum CurrentStatus { get; }
     }
 }

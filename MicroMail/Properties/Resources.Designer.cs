@@ -86,5 +86,41 @@ namespace MicroMail.Properties {
                 return ResourceManager.GetString("EncryptionSalt", resourceCulture);
             }
         }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to [{0}] {1}: {2}.
+        /// </summary>
+        internal static string LoggerDebugTemplate {
+            get {
+                return ResourceManager.GetString("LoggerDebugTemplate", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Checking mail....
+        /// </summary>
+        internal static string TrayCheckingMailText {
+            get {
+                return ResourceManager.GetString("TrayCheckingMailText", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to No new mail..
+        /// </summary>
+        internal static string TrayNoNewMailtext {
+            get {
+                return ResourceManager.GetString("TrayNoNewMailtext", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to You have new mail..
+        /// </summary>
+        internal static string TrayUnreadMailText {
+            get {
+                return ResourceManager.GetString("TrayUnreadMailText", resourceCulture);
+            }
+        }
     }
 }

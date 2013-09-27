@@ -1,5 +1,5 @@
-﻿using System.Collections.Generic;
-using System.Globalization;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Timers;
 using System.Windows;
@@ -26,6 +26,7 @@ namespace MicroMail
         private readonly EventBus _eventBus;
         private readonly IResolutionRoot _injector;
         private readonly AsyncObservableCollection<EmailGroupModel> _emailGroupList;
+        private bool _newMailInList;
 
         [Inject]
         public ApplicationWorker(AccountsSettingsModel accountsSettings, EventBus eventBus, IResolutionRoot injector, AsyncObservableCollection<EmailGroupModel> emailGroupList)
@@ -43,6 +44,7 @@ namespace MicroMail
             _timer.Elapsed += TimerElapsedHandler;
             _eventBus.Subscribe(PlainServiceEvents.NewMailFetched, ServiceMailFetchedHandler);
             _eventBus.Subscribe<FetchMailBodyEvent>(FetchMailBodyCallback);
+            _eventBus.Subscribe<ServiceStatusEvent>(ServiceStateCallback);
 
             InitTray();
             InitServices();
@@ -56,6 +58,7 @@ namespace MicroMail
 
         private void CheckMailInAllServices()
         {
+            _tray.ShowRefreshingIcon();
             foreach (var service in _servicesPool)
             {
                 service.Value.CheckMail();
@@ -135,12 +138,19 @@ namespace MicroMail
 
         private void TrayClickHandler()
         {
-            _eventBus.Trigger(PlainWindowEvents.ShowMailListWindow);
+            OpenMailList();
         }
 
         private void TrayBallonClickHandler()
         {
+            OpenMailList();
+        }
+
+        private void OpenMailList()
+        {
             _eventBus.Trigger(PlainWindowEvents.ShowMailListWindow);
+            _newMailInList = false;
+            ShowIdleIcon();
         }
 
         private void StartAccount(Account account)
@@ -160,6 +170,9 @@ namespace MicroMail
 
             if (count == 0) return;
 
+            _newMailInList = true;
+            ShowIdleIcon();
+
             if (count > 1)
             {
                 _tray.ShowNotification("Mail", "You have new mail. Click here to see", 10);
@@ -172,18 +185,54 @@ namespace MicroMail
                     _tray.ShowNotification("Mail", newMail.From + "\n" + newMail.Subject, 10);
                 }
             }
-
-            _tray.ShowText(emails.Count().ToString(CultureInfo.InvariantCulture));
         }
 
-        private void FetchMailBodyCallback(FetchMailBodyEvent message)
+        private void FetchMailBodyCallback(FetchMailBodyEvent e)
         {
-            var email = message.Email;
-            var service = email != null && _servicesPool.ContainsKey(message.Email.ServiceId) ? _servicesPool[message.Email.ServiceId] : null;
+            this.Debug("Fetch Body");
+
+            var email = e.Email;
+            var service = email != null && _servicesPool.ContainsKey(e.Email.ServiceId) ? _servicesPool[e.Email.ServiceId] : null;
 
             if (service == null) return;
 
-            service.FetchMailBody(message.Email);
+            service.FetchMailBody(e.Email);
         }
+
+        private void ServiceStateCallback(ServiceStatusEvent e)
+        {
+            switch (e.Status)
+            {
+                case ServiceStatusEnum.Disconnected:
+                case ServiceStatusEnum.FailedRead:
+                    _tray.ShowErrorIcon("Disconnected.");
+                    break;
+
+                case ServiceStatusEnum.CheckingMail:
+                case ServiceStatusEnum.Logging:
+                case ServiceStatusEnum.SyncFolder:
+                    _tray.ShowRefreshingIcon();
+                    break;
+
+                default:
+                    ShowIdleIcon();
+                    break;
+            }
+        }
+
+        private void ShowIdleIcon()
+        {
+            if (_servicesPool.Any(m => m.Value.CurrentStatus != ServiceStatusEnum.Idle)) return;
+
+            if (_newMailInList)
+            {
+                _tray.ShowUnreadMailIcon();
+            }
+            else
+            {
+                _tray.ShowNormalIcon();
+            }
+        }
+
     }
 }

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Text;
 using MicroMail.Infrastructure.Helpers;
+using MicroMail.Infrastructure;
 using MicroMail.Services.Responses;
 
 namespace MicroMail.Services.Commands
@@ -14,8 +15,7 @@ namespace MicroMail.Services.Commands
             if (!string.IsNullOrEmpty(message))
             {
                 Id = IdGenerator.GenerateId();
-                var command = Id + " " + message + CommandEnding;
-                Console.WriteLine(command);
+                var command = Id + " " + message + CommandEnding + "";
                 BinMessage = Encoding.ASCII.GetBytes(command);
             }
             Callback = callback;

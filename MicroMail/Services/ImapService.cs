@@ -16,17 +16,15 @@ using MicroMail.Services.Responses;
 
 namespace MicroMail.Services
 {
-    public delegate void ImapServiceHandler(ImapService service);
-
     public class ImapService : IFetchMailService
     {
         private const string ResponsePattern = "^(?<id>{0})\\s(?<status>OK|NO|BAD)";
 
-        //private StreamReader _reader;
         private TcpClient _tcpClient;
         private SslStream _ssl;
         private readonly Collection<IImapCommand> _requestsPool = new Collection<IImapCommand>();
         private readonly EventBus _eventBus;
+        private readonly object _locker = new object();
 
         public ImapService(EventBus eventBus)
         {
@@ -40,6 +38,16 @@ namespace MicroMail.Services
         public List<string> UnreadMessagesIds { get; private set; }
         public EmailGroupModel EmailGroup { get; private set; }
 
+        private ServiceStatusEnum _currentStatus;
+        public ServiceStatusEnum CurrentStatus {
+            get { return _currentStatus; }
+            private set
+            {
+                _currentStatus = value;
+                _eventBus.Trigger(new ServiceStatusEvent(value));
+            }
+        }
+
         public void Start(Account account)
         {
             if (account == null) return;
@@ -52,7 +60,6 @@ namespace MicroMail.Services
             _tcpClient = new TcpClient(Account.Host, Account.Port);
             _ssl = new SslStream(_tcpClient.GetStream());
             _ssl.AuthenticateAsClient(Account.Host);
-            //_reader = new StreamReader(_ssl);
             Init();
             Login();
             SelectRootFolder();
@@ -72,28 +79,21 @@ namespace MicroMail.Services
             _ssl.Flush();
             var reader = new StreamReader(_ssl, Encoding.Default);
             reader.ReadLine();
-
-            _eventBus.Trigger(PlainServiceEvents.Connected);
         }
 
         private void Login()
         {
-            SendCommand(new LoginCommand(Account.Login, AccountHelper.ToInsecurePassword(Account.SecuredPassword), LoginCallback));
-        }
-
-        private void LoginCallback(LoginResponse responseBase)
-        {
-            _eventBus.Trigger(PlainServiceEvents.LoginSuccess);
+            SendCommand(new LoginCommand(Account.Login, AccountHelper.ToInsecurePassword(Account.SecuredPassword), null), ServiceStatusEnum.Logging);
         }
 
         private void SelectRootFolder()
         {
-            SendCommand(new SelectRootFolderCommand(null));
+            SendCommand(new SelectRootFolderCommand(null), ServiceStatusEnum.SyncFolder);
         }
 
         public void CheckMail()
         {
-            SendCommand(new SearchUnseenCommand(CheckMailResponder));
+            SendCommand(new SearchUnseenCommand(CheckMailResponder), ServiceStatusEnum.CheckingMail);
         }
 
         private void CheckMailResponder(SearchUnseenResponse request)
@@ -106,7 +106,9 @@ namespace MicroMail.Services
         {
             var count = ids.Count();
             var fetchedCount = 0;
-            foreach (var id in ids)
+            var sortedIds = ids.Where(m => EmailGroup.EmailList.All(e => e.Id != m)).OrderByDescending(m => m);
+
+            foreach (var id in sortedIds)
             {
                 SendCommand(new FetchMailHeadersCommand(id, m =>
                     {
@@ -122,19 +124,21 @@ namespace MicroMail.Services
                         {
                             _eventBus.Trigger(PlainServiceEvents.NewMailFetched);
                         }
-                    }));
+                    }), ServiceStatusEnum.RetreivingHeaders);
             }
         }
 
         public void FetchMailBody(EmailModel email)
         {
-            SendCommand(new FetchMailBodyCommand(email, null));
+            SendCommand(new FetchMailBodyCommand(email, null), ServiceStatusEnum.RetreivingBody);
         }
 
-        private void SendCommand(IImapCommand request)
+        private void SendCommand(IImapCommand request, ServiceStatusEnum status)
         {
             if (request == null) return;
 
+            CurrentStatus = status;
+            var newStatus = ServiceStatusEnum.Idle;
             try
             {
                 if (request.BinMessage.Length > 0)
@@ -142,21 +146,25 @@ namespace MicroMail.Services
                     _requestsPool.Add(request);
                     if (_tcpClient.Connected)
                     {
-                        _ssl.Write(request.BinMessage, 0, request.BinMessage.Length);
+                        lock (_locker)
+                        {
+                            _ssl.Write(request.BinMessage, 0, request.BinMessage.Length);
+                            _ssl.Flush();
+                            ReadSsl(request.Encoding);
+                        }
                     }
                     else
                     {
-                        _eventBus.Trigger(PlainServiceEvents.Disconnected);
+                        newStatus = ServiceStatusEnum.Disconnected;
                     }
                 }
-
-                _ssl.Flush();
-                ReadSsl(request.Encoding);
             }
             catch
             {
-                _eventBus.Trigger(PlainServiceEvents.ServiceFailed);
+                newStatus = ServiceStatusEnum.FailedRead;
             }
+
+            CurrentStatus = newStatus;
         }
 
         private void ReadSsl(Encoding encoding)
@@ -184,8 +192,11 @@ namespace MicroMail.Services
             
             if (raw == null) return;
 
-            foreach (var request in _requestsPool.Where(request => raw.Id == request.Id))
+            for (var i = _requestsPool.Count - 1; i >= 0; i --)
             {
+                var request = _requestsPool[i];
+                if (request.Id != raw.Id) continue;
+
                 _requestsPool.Remove(request);
                 request.NotifyCallback(raw);
             }

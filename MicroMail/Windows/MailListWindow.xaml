@@ -2,39 +2,58 @@
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" 
         xmlns:toolkit="clr-namespace:System.Windows.Controls;assembly=System.Windows.Controls.Layout.Toolkit"
-        xmlns:controls="clr-namespace:MicroMail.Controls"
+        xmlns:controls="clr-namespace:MicroMail.Controls" xmlns:windows="clr-namespace:MicroMail.Windows"
         Title="Mail List" 
         Icon="../Graphics/windowIcon.png"
         DataContext="{Binding RelativeSource={RelativeSource Self}}">
+    
+    <Window.Resources>
+        <windows:BoolToWeightConverter x:Key="BoolToWeightConverter" />
+        <windows:UnreadCountConverter x:Key="UnreadCountConverter" />
+    </Window.Resources>
     
     <Grid>
         <Grid.Resources>
             <ResourceDictionary Source="../Themes/AccordionCustomTheme.xaml" />
         </Grid.Resources>
-        <toolkit:Accordion ItemsSource="{Binding Path=EmailGroupListModel}" >
+        <toolkit:Accordion ItemsSource="{Binding Path=EmailGroupListModel}"
+                           HorizontalAlignment="Stretch"
+                           HorizontalContentAlignment="Stretch"
+                           ExpandDirection="Down"
+                           VerticalAlignment="Stretch"
+                           SelectionMode="ZeroOrOne">
             <toolkit:Accordion.ItemTemplate>
                 <DataTemplate>
-                    <TextBlock Text="{Binding Name}" />
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Stretch">
+                        <TextBlock Text="{Binding Name}" FontSize="14" Foreground="Black" Margin="0,0,20,6" FontWeight="Medium"/>
+                        <TextBlock Text="{Binding EmailList, Converter={StaticResource UnreadCountConverter}}" FontSize="14" HorizontalAlignment="Right"/>
+                    </StackPanel>
                 </DataTemplate>
             </toolkit:Accordion.ItemTemplate>
             <toolkit:Accordion.ContentTemplate>
                 <DataTemplate>
                     <controls:ClickableListView ItemsSource="{Binding EmailList}"
                                                 ItemMouseDown="ClickableListView_OnItemMouseDown"
-                                                ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+                                                ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                                                HorizontalContentAlignment="Stretch"
+                                                VerticalContentAlignment="Stretch">
                         <controls:ClickableListView.ItemTemplate>
                             <DataTemplate>
-                                <Border Background="WhiteSmoke" BorderThickness="1" BorderBrush="Silver" CornerRadius="4">
-                                    <StackPanel Orientation="Vertical" Margin="5" >
-                                        <StackPanel Orientation="Horizontal" VerticalAlignment="Bottom">
+                                <Border Background="WhiteSmoke" BorderThickness="1" BorderBrush="Silver" CornerRadius="4" Margin="0,0,0,0">
+                                    <!-- TODO: Figure out why the TextBlocks don't get trancated. -->
+                                    <StackPanel Orientation="Vertical" Margin="5" HorizontalAlignment="Stretch">
+                                        <StackPanel Orientation="Horizontal" VerticalAlignment="Bottom" >
                                             <Image Source="../Graphics/senderIcon.png" />
-                                            <TextBlock Text="{Binding Path=From}" MaxWidth="235" Margin="2,0,4,0" TextTrimming="CharacterEllipsis" FontSize="13" />
+                                            <TextBlock Text="{Binding Path=From}" Margin="2,0,4,0" TextTrimming="CharacterEllipsis" FontSize="13"
+                                                       FontWeight="{Binding Path=IsRead, Converter={StaticResource BoolToWeightConverter}}"/>
                                         </StackPanel>
-                                        <StackPanel Orientation="Horizontal" Margin="0,10,0,0">
+                                        <StackPanel Orientation="Horizontal" Margin="0,10,0,0" >
                                             <Image Source="../Graphics/subjectIcon.png" VerticalAlignment="Bottom"/>
-                                            <TextBlock Text="{Binding Path=Subject}" MaxWidth="235" Margin="2,0,4,0"  TextTrimming="CharacterEllipsis" VerticalAlignment="Center" FontSize="14" />
+                                            <TextBlock Text="{Binding Path=Subject}" Margin="2,0,8,0"  TextWrapping="NoWrap"
+                                                    TextTrimming="CharacterEllipsis" FontSize="14"/>
                                         </StackPanel>
                                     </StackPanel>
+
                                 </Border>
                             </DataTemplate>
                         </controls:ClickableListView.ItemTemplate>

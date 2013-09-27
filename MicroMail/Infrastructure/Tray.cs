@@ -35,33 +35,9 @@ namespace MicroMail.Infrastructure
                 ContextMenu = _menu,
                 Visible = true
             };
-            var stream = Assembly.GetExecutingAssembly().GetManifestResourceStream("MicroMail.Graphics.trayIcon.png");
-
-            if (stream == null) return;
-            
-            var bm = new Bitmap(stream);
-            _icon.Icon = Icon.FromHandle(bm.GetHicon());
+            ShowNormalIcon();
             _icon.BalloonTipClicked += IconBalloonClickHandler;
             _icon.Click += IconClickHandler;
-        }
-
-        public void ShowText(string text)
-        {
-            _icon.Icon.Dispose();
-
-            var stream = Assembly.GetExecutingAssembly().GetManifestResourceStream("Remoting.Graphics.trayIcon.png");
-
-            if (stream == null) return;
-
-            var bm = new Bitmap(stream);
-            var graphics = Graphics.FromImage(bm);
-            graphics.TextRenderingHint = TextRenderingHint.SingleBitPerPixel;
-
-            var family = new FontFamily("Arial");
-            var font = new Font(family, 18, FontStyle.Regular, GraphicsUnit.Point);
-
-            graphics.DrawString(text, font, new SolidBrush(Color.Azure), 0, 0);
-            _icon.Icon = Icon.FromHandle(bm.GetHicon());
         }
 
         public void ShowNotification(string title, string notification, int timeoutSeconds)
@@ -70,6 +46,40 @@ namespace MicroMail.Infrastructure
             _icon.BalloonTipTitle = title;
             _icon.Visible = true;
             _icon.ShowBalloonTip(timeoutSeconds * 1000);
+        }
+
+        public void ShowNormalIcon()
+        {
+            UpdateIcon("MicroMail.Graphics.trayIconNormal.png");
+            _icon.Text = Resources.TrayNoNewMailtext;
+        }
+
+        public void ShowRefreshingIcon()
+        {
+            UpdateIcon("MicroMail.Graphics.trayIconRefresh.png");
+            _icon.Text = Resources.TrayCheckingMailText;
+        }
+
+        public void ShowUnreadMailIcon()
+        {
+            UpdateIcon("MicroMail.Graphics.trayIconUnread.png");
+            _icon.Text = Resources.TrayUnreadMailText;
+        }
+
+        public void ShowErrorIcon(string error)
+        {
+            UpdateIcon("MicroMail.Graphics.trayIconError.png");
+            _icon.Text = error;
+        }
+
+        private void UpdateIcon(string source)
+        {
+            var stream = Assembly.GetExecutingAssembly().GetManifestResourceStream(source);
+
+            if (stream == null) return;
+
+            var bm = new Bitmap(stream);
+            _icon.Icon = Icon.FromHandle(bm.GetHicon());
         }
 
         private void SettingsClickHandler(object sender, EventArgs eventArgs)

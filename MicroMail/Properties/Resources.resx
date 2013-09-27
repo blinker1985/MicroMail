@@ -126,4 +126,16 @@
   <data name="EncryptionSalt" xml:space="preserve">
     <value>The Remoting App ecnryption salt.</value>
   </data>
+  <data name="TrayNoNewMailtext" xml:space="preserve">
+    <value>No new mail.</value>
+  </data>
+  <data name="TrayCheckingMailText" xml:space="preserve">
+    <value>Checking mail...</value>
+  </data>
+  <data name="TrayUnreadMailText" xml:space="preserve">
+    <value>You have new mail.</value>
+  </data>
+  <data name="LoggerDebugTemplate" xml:space="preserve">
+    <value>[{0}] {1}: {2}</value>
+  </data>
 </root>

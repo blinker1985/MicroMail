@@ -1,12 +1,18 @@
 ﻿using System;
+using System.Collections;
+using System.Collections.Generic;
 using System.ComponentModel;
+using System.Globalization;
 using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Data;
 using System.Windows.Forms;
 using System.Windows.Interop;
 using MicroMail.Infrastructure;
 using MicroMail.Infrastructure.Messaging;
 using MicroMail.Infrastructure.Messaging.Events;
 using MicroMail.Models;
+using System.Linq;
 
 namespace MicroMail.Windows
 {
@@ -75,6 +81,34 @@ namespace MicroMail.Windows
             {
                 _eventBus.Trigger(new ShowMailWindowEvent(email));
             }
+        }
+    }
+
+    public class BoolToWeightConverter : IValueConverter
+    {
+        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            return value.GetType() != typeof (bool) || (bool) value ? FontWeights.Normal : FontWeights.Bold;
+        }
+
+        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            return false;
+        }
+    }
+
+    public class UnreadCountConverter : IValueConverter
+    {
+        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            var collection = (IEnumerable<EmailModel>) value;
+            var count = collection != null ? collection.Count(m => !m.IsRead) : 0;
+            return count > 0 ? string.Format("({0})", count) : string.Empty;
+        }
+
+        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            throw new NotImplementedException();
         }
     }
 }

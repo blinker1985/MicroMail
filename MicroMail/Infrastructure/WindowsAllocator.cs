@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Windows;
+using System.Windows.Controls;
 using MicroMail.Infrastructure.Messaging;
 using MicroMail.Windows;
 using Ninject.Syntax;

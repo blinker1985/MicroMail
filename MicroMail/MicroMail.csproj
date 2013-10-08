@@ -124,20 +124,30 @@
     <Compile Include="Models\SettingsModeBase.cs" />
     <Compile Include="Models\AccountsSettingsModel.cs" />
     <Compile Include="Properties\Annotations.cs" />
-    <Compile Include="Services\Commands\FetchMailHeadersCommand.cs" />
-    <Compile Include="Services\Commands\FetchMailBodyCommand.cs" />
-    <Compile Include="Services\Commands\IImapCommand.cs" />
-    <Compile Include="Services\Commands\ImapCommand.cs" />
-    <Compile Include="Services\Commands\LoginCommand.cs" />
-    <Compile Include="Services\Commands\SearchUnseenCommand.cs" />
-    <Compile Include="Services\Commands\SelectRootFolderCommand.cs" />
+    <Compile Include="Services\Imap\Commands\ImapFetchMailHeadersCommand.cs" />
+    <Compile Include="Services\Imap\Commands\ImapFetchMailBodyCommand.cs" />
+    <Compile Include="Services\Imap\Commands\ImapInitCommand.cs" />
+    <Compile Include="Services\IServiceCommand.cs" />
+    <Compile Include="Services\Pop3\Commands\Pop3InitCommand.cs" />
+    <Compile Include="Services\Pop3\Commands\Pop3LoginCommand.cs" />
+    <Compile Include="Services\Pop3\Commands\Pop3PassCommand.cs" />
+    <Compile Include="Services\Pop3\Commands\Pop3UserCommand.cs" />
+    <Compile Include="Services\Pop3\Responses\Pop3InitResponse.cs" />
+    <Compile Include="Services\Pop3\Responses\Pop3LoginResponse.cs" />
+    <Compile Include="Services\ServiceCommandBase.cs" />
+    <Compile Include="Services\Imap\Commands\ImapCommand.cs" />
+    <Compile Include="Services\Imap\Commands\ImapLoginCommand.cs" />
+    <Compile Include="Services\Imap\Commands\ImapSearchUnseenCommand.cs" />
+    <Compile Include="Services\Imap\Commands\ImapSelectRootFolderCommand.cs" />
+    <Compile Include="Services\FetchMailServiceBase.cs" />
     <Compile Include="Services\IFetchMailService.cs" />
-    <Compile Include="Services\Responses\FetchMailHeaderResponse.cs" />
-    <Compile Include="Services\Responses\FetchMailBodyResponse.cs" />
-    <Compile Include="Services\Responses\LoginResponse.cs" />
-    <Compile Include="Services\Responses\RawObject.cs" />
-    <Compile Include="Services\Responses\ResponseBase.cs" />
-    <Compile Include="Services\Responses\SearchUnseenResponse.cs" />
+    <Compile Include="Services\Imap\Responses\ImapFetchMailHeaderResponse.cs" />
+    <Compile Include="Services\Imap\Responses\ImapFetchMailBodyResponse.cs" />
+    <Compile Include="Services\Imap\Responses\ImapLoginResponse.cs" />
+    <Compile Include="Services\Pop3\Pop3Service.cs" />
+    <Compile Include="Services\RawObject.cs" />
+    <Compile Include="Services\ResponseBase.cs" />
+    <Compile Include="Services\Imap\Responses\ImapSearchUnseenResponse.cs" />
     <Compile Include="Services\ServiceStatusEnum.cs" />
     <Compile Include="Windows\AccountDialog.xaml.cs">
       <DependentUpon>AccountDialog.xaml</DependentUpon>
@@ -173,7 +183,7 @@
       <DependentUpon>App.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Services\ImapService.cs" />
+    <Compile Include="Services\Imap\ImapService.cs" />
     <Compile Include="Infrastructure\Tray.cs" />
     <Compile Include="Windows\AboutWindow.xaml.cs">
       <DependentUpon>AboutWindow.xaml</DependentUpon>
@@ -253,6 +263,7 @@
   <ItemGroup>
     <Resource Include="icon.ico" />
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

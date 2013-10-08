@@ -26,7 +26,6 @@
                 <DataTemplate>
                     <StackPanel Orientation="Horizontal" HorizontalAlignment="Stretch">
                         <TextBlock Text="{Binding Name}" FontSize="14" Foreground="Black" Margin="0,0,20,6" FontWeight="Medium"/>
-                        <TextBlock Text="{Binding EmailList, Converter={StaticResource UnreadCountConverter}}" FontSize="14" HorizontalAlignment="Right"/>
                     </StackPanel>
                 </DataTemplate>
             </toolkit:Accordion.ItemTemplate>

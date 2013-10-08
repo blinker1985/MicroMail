@@ -1,5 +1,4 @@
-﻿using System;
-using MicroMail.Models;
+﻿using MicroMail.Models;
 
 namespace MicroMail.Services
 {

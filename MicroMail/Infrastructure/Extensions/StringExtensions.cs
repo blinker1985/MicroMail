@@ -1,7 +1,12 @@
 ﻿using System;
+using System.Security.Cryptography;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Linq;
+using MicroMail.Infrastructure.Helpers;
+using MicroMail.Models;
+using MicroMail.Services;
+using MicroMail.Services.Pop3.Commands;
 
 namespace MicroMail.Infrastructure.Extensions
 {
@@ -78,6 +83,14 @@ namespace MicroMail.Infrastructure.Extensions
         public static string EscapeRegexpSpecialChars(this string str)
         {
             return new Regex("[\\\\\\.\\+\\*\\?\\^\\$\\[\\]\\(\\)\\{\\}\\/\\|\\'\\#]").Replace(str, "\\$&");
+        }
+
+        public static string ToMd5HexString(this string str)
+        {
+            var md5 = MD5.Create();
+            var hashBin = md5.ComputeHash(Encoding.UTF8.GetBytes(str));
+
+            return hashBin.Aggregate("", (current, b) => current + b.ToString("x2"));
         }
     }
 }

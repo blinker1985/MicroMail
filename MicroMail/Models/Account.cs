@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Security;
 using MicroMail.Infrastructure.Helpers;
-using MicroMail.Services;
+using MicroMail.Services.Pop3;
 
 namespace MicroMail.Models
 {
@@ -21,7 +21,7 @@ namespace MicroMail.Models
         }
 
         public Type ServiceType {
-            get { return typeof(ImapService); }
+            get { return typeof(Pop3Service); }
         }
 
         public string Name { get; set; }

@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using System.Timers;
 using System.Windows;
@@ -23,18 +22,24 @@ namespace MicroMail
         private readonly Timer _timer = new Timer();
 
         private readonly AccountsSettingsModel _accountsSettings;
+        private readonly ApplicationSettingsModel _appSettings;
         private readonly EventBus _eventBus;
         private readonly IResolutionRoot _injector;
         private readonly AsyncObservableCollection<EmailGroupModel> _emailGroupList;
         private bool _newMailInList;
 
         [Inject]
-        public ApplicationWorker(AccountsSettingsModel accountsSettings, EventBus eventBus, IResolutionRoot injector, AsyncObservableCollection<EmailGroupModel> emailGroupList)
+        public ApplicationWorker(AccountsSettingsModel accountsSettings, 
+            EventBus eventBus, 
+            IResolutionRoot injector, 
+            AsyncObservableCollection<EmailGroupModel> emailGroupList,
+            ApplicationSettingsModel appSettings)
         {
             _accountsSettings = accountsSettings;
             _eventBus = eventBus;
             _injector = injector;
             _emailGroupList = emailGroupList;
+            _appSettings = appSettings;
         }
 
         public void Start(Application application)
@@ -104,7 +109,7 @@ namespace MicroMail
 
         public void ResetTimer()
         {
-            _timer.Interval = _accountsSettings.RefreshTime * 1000;
+            _timer.Interval = _appSettings.RefreshTime * 1000;
             _timer.Start();
         }
 

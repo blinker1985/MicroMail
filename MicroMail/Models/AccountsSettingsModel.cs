@@ -1,5 +1,4 @@
 ﻿using System.Collections.Specialized;
-using System.Windows;
 using MicroMail.Infrastructure;
 using MicroMail.Infrastructure.Helpers;
 
@@ -13,16 +12,6 @@ namespace MicroMail.Models
         {
             Accounts = new AsyncObservableCollection<Account>();
             Load();
-        }
-
-        public int RefreshTime {
-            get { return AppSettings.RefreshTime; }
-            set { AppSettings.RefreshTime = value; }
-        }
-
-        public bool FetchNewMail {
-            get { return AppSettings.FetchNewMails; }
-            set { AppSettings.FetchNewMails = value; }
         }
 
         public AsyncObservableCollection<Account> Accounts { get; private set; }

@@ -3,35 +3,28 @@ using MicroMail.Infrastructure.Extensions;
 
 namespace MicroMail.Services.Imap.Responses
 {
-    class ImapFetchMailHeaderResponse : ResponseBase
+    class ImapFetchMailHeaderResponse : ImapResponseBase
     {
-        private readonly string _id;
-
-        public ImapFetchMailHeaderResponse(string id)
-        {
-            _id = id;
-        }
-
         public EmailModel Email { get; set; }
 
-        public override void ParseRawResponse(RawObject raw)
+        protected override void Complete()
         {
-            if (raw == null) return;
-            var contentType = raw.Message.GetHeaderValue("content-type");
+            if (ResponseDetails.Status != "OK") return;
+
+            var message = ResponseDetails.Body;
+            var contentType = message.GetHeaderValue("content-type");
 
             Email = new EmailModel
-                {
-                    Id = _id,
-                    Date = raw.Message.GetHeaderValue("date").ParseDateString(),
-                    Subject = raw.Message.GetHeaderValue("subject").DecodeEncodedWord().ReplaceAllNewLines(),
-                    From = raw.Message.GetHeaderValue("from").DecodeEncodedWord(),
-                    Boundary = raw.Message.GetHeaderValue("content-type", "boundary"),
-                    ContentTransferEncoding = raw.Message.GetHeaderValue("content-transfer-encoding"),
-                    ContentType = contentType,
-                    Charset = raw.Message.GetHeaderValue("content-type", "charset"),
-                    IsMultipart = contentType.ToLowerInvariant().Contains("multipart/")
-                };
+            {
+                Date = message.GetHeaderValue("date").ParseDateString(),
+                Subject = message.GetHeaderValue("subject").DecodeEncodedWord().ReplaceAllNewLines(),
+                From = message.GetHeaderValue("from").DecodeEncodedWord(),
+                Boundary = message.GetHeaderValue("content-type", "boundary"),
+                ContentTransferEncoding = message.GetHeaderValue("content-transfer-encoding"),
+                ContentType = contentType,
+                Charset = message.GetHeaderValue("content-type", "charset"),
+                IsMultipart = contentType.ToLowerInvariant().Contains("multipart/")
+            };
         }
-
     }
 }

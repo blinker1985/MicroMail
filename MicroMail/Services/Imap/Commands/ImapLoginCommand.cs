@@ -1,24 +1,34 @@
 ﻿using System;
+using System.IO;
+using MicroMail.Infrastructure;
+using MicroMail.Infrastructure.Helpers;
+using MicroMail.Models;
 using MicroMail.Services.Imap.Responses;
 
 namespace MicroMail.Services.Imap.Commands
 {
-    //TODO: It's not secure to store the user's credentials in BinMessage. We shoud use SecureString and create BinMessage on demand to avoid storing the pass in memory.
-    class ImapLoginCommand : ImapCommand<ImapLoginResponse>
+    class ImapLoginCommand : ImapCommandBase<ImapLoginResponse>
     {
-        private const string LoginMessage = "LOGIN {0} {1}";
+        private readonly Account _account ;
 
-        public ImapLoginCommand(string username, string pass, Action<ImapLoginResponse> callback)
-            : base(string.Format(LoginMessage, username, pass), callback)
+        public ImapLoginCommand(Account account, Action<ImapLoginResponse> callback) : base(callback)
         {
-
+            _account = account;
         }
 
-        protected override ImapLoginResponse GenerateResponse(RawObject raw)
+        public override string Message
         {
-            var response = new ImapLoginResponse();
-            response.ParseRawResponse(raw);
-            return response;
+            get { return "{0} LOGIN {1} {2}"; }
+        }
+
+        protected override void Write(System.Net.Security.SslStream ssl)
+        {
+            if (string.IsNullOrEmpty(Message)) return;
+
+            var writer = new StreamWriter(ssl);
+            writer.WriteLine(Message, IdGenerator.GenerateId(), _account.Login, AccountHelper.ToInsecurePassword(_account.SecuredPassword));
+            writer.Flush();
+            this.Debug(string.Format(Message, "", _account.Login, "*******"));
         }
     }
 }

@@ -1,14 +1,16 @@
-﻿namespace MicroMail.Services.Imap.Commands
+﻿using MicroMail.Services.Imap.Responses;
+
+namespace MicroMail.Services.Imap.Commands
 {
-    class ImapInitCommand : ServiceCommandBase<ResponseBase>
+    class ImapInitCommand : ServiceCommandBase<ImapInitResponse>
     {
         public ImapInitCommand() : base(null)
         {
         }
 
-        protected override ResponseBase GenerateResponse(RawObject raw)
+        public override string Message
         {
-            return new ResponseBase();
+            get { return null; }
         }
     }
 }

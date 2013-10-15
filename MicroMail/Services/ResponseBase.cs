@@ -1,28 +1,35 @@
-﻿using System;
+﻿using System.Text;
 
 namespace MicroMail.Services
 {
-    public enum RequestStatus
+    abstract class ResponseBase
     {
-        Pending,
-        Ok,
-        No,
-        Bad
+        public bool Completed { get; protected set; }
+
+        protected ResponseDetails ResponseDetails { get; set; }
+
+        private string _message;
+
+        public void WriteLine(string line)
+        {
+            _message = new StringBuilder(_message).AppendLine(line).ToString();
+
+            if (!IsLastLine(line)) return;
+
+            ResponseDetails = ParseResponseDetails(_message);
+            Complete();
+            Completed = true;
+        }
+
+        protected abstract bool IsLastLine(string line);
+        protected abstract void Complete();
+        protected abstract ResponseDetails ParseResponseDetails(string message);
     }
 
-    class ResponseBase
+    internal class ResponseDetails
     {
-        public string Id { get; private set; }
-        public RequestStatus Status { get; private set; }
-
-        public virtual void ParseRawResponse(RawObject raw)
-        {
-            if (raw == null) return;
-
-            Id = raw.Id;
-            RequestStatus s;
-            Enum.TryParse(raw.Status, true, out s);
-            Status = s;
-        }
+        public string Status { get; set; }
+        public string Body { get; set; }
+        public string StatusMessage { get; set; }
     }
 }

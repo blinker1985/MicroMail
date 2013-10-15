@@ -1,20 +1,34 @@
 ﻿<Window x:Class="MicroMail.Windows.AccountDialog"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="Manage Account" Height="240" Width="250"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" 
+        xmlns:windows="clr-namespace:MicroMail.Windows"
+        Title="Manage Account" Height="330" Width="250"
         Icon="../Graphics/windowIcon.png"
         DataContext="{Binding RelativeSource={RelativeSource Self}}">
 
+    <Window.Resources>
+        <windows:ImapCheckedValueConverter x:Key="ImapCheckedConverter" />
+        <windows:Pop3CheckedValueConverter x:Key="Pop3CheckedConverter" />
+    </Window.Resources>
+    
     <StackPanel >
-        <StackPanel Orientation="Horizontal" VerticalAlignment="Top" Margin="0 3">
-            <TextBlock Text="Name:" Margin="3 1 31 1"/>
-            <TextBox Width="100" Text="{Binding Path=Account.Name}" />
-        </StackPanel>
+        <GroupBox Header="General">
+            <StackPanel>
+                <StackPanel Orientation="Horizontal" VerticalAlignment="Top" Margin="0 3">
+                    <TextBlock Text="Name:" Margin="3 1 31 1"/>
+                    <TextBox Name="AccountName" Width="100" Text="{Binding Path=Account.Name, Mode=OneWay}" />
+                </StackPanel>
+                <CheckBox Name="SaveEmailCheckbox" Content="Save emails locally" Margin="0 5" IsChecked="{Binding Path=Account.SaveEmailsLocally, Mode=OneWay}" 
+                          ToolTip="Select this option if you want to store recevied e-mails locally and have off-line access to them." />
+                <CheckBox Name="DeleteEmailCheckbox" Content="Delete read emails (POP3 only)" IsChecked="{Binding Path=Account.DeleteReadEmails, Mode=OneWay}"
+                          ToolTip="Select this option if you want to delete e-mail on server after reading them. This option is valid only for POP3 protocol."/>
+            </StackPanel>
+        </GroupBox>
         <GroupBox Header="Credentials" >
             <StackPanel>
                 <StackPanel Orientation="Horizontal" VerticalAlignment="Top" Margin="0 3">
                     <TextBlock Text="Login:" Margin="3 1 24 1"/>
-                    <TextBox Width="100" Text="{Binding Path=Account.Login}"/>
+                    <TextBox Name="Login" Width="100" Text="{Binding Path=Account.Login, Mode=OneWay}"/>
                 </StackPanel>
                 <StackPanel Orientation="Horizontal" VerticalAlignment="Top" Margin="0 3">
                     <TextBlock Text="Password:" Margin="3 1"/>
@@ -26,11 +40,20 @@
             <StackPanel>
                 <StackPanel Orientation="Horizontal" VerticalAlignment="Top" Margin="0 3">
                     <TextBlock Text="Host:" Margin="3 1"/>
-                    <TextBox Name="Host" Width="100" Text="{Binding Path=Account.Host}" />
+                    <TextBox Name="Host" Width="100" Text="{Binding Path=Account.Host, Mode=OneWay}" />
                 </StackPanel>
                 <StackPanel Orientation="Horizontal" VerticalAlignment="Top" Margin="0 3">
                     <TextBlock Text="Port:" Margin="3 1"/>
-                    <TextBox Name="Port" Width="30" Text="{Binding Path=Account.Port}" />
+                    <TextBox Name="Port" Width="30" Text="{Binding Path=Account.Port, Mode=OneWay}" PreviewTextInput="Port_OnPreviewTextInput" />
+                </StackPanel>
+                <StackPanel Orientation="Horizontal" Margin="0 3">
+                    <Label Content="Protocol:" VerticalAlignment="Center" />
+                    <RadioButton Name="ImapProtocolRadiobutton" Content="IMAP" 
+                                 GroupName="Protocol" VerticalAlignment="Center" Margin="10 0 0 0" 
+                                 IsChecked="{Binding Path=Account.ProtocolType, Converter={StaticResource ImapCheckedConverter}, Mode=OneWay}" />
+                    <RadioButton Name="Pop3ProtocolRadiobutton" Content="POP3" GroupName="Protocol" 
+                                 VerticalAlignment="Center" Margin="10 0 0 0" 
+                                 IsChecked="{Binding Path=Account.ProtocolType, Converter={StaticResource Pop3CheckedConverter}, Mode=OneWay}"/>
                 </StackPanel>
             </StackPanel>
         </GroupBox>

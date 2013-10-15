@@ -8,6 +8,7 @@ namespace MicroMailTests
     public class StringExtensionsTest
     {
         private const string HeaderTestBody = "Test-Header-Name: Test header value; test-attribute-name=\"Test header attribute value.\"";
+        private const string HeaderTestBodyWithSpaces = "Test-Header-Name: Test header value; test-attribute-name = \"Test header attribute value.\"";
         private const string HeaderTestName = "test-header-name";
         private const string HeaderTestEtalon = "Test header value";
         private const string HeaderAttributeTestName = "test-attribute-name";
@@ -25,6 +26,7 @@ namespace MicroMailTests
         public void GetHeaderValueTest()
         {
             Assert.AreEqual(HeaderTestBody.GetHeaderValue(HeaderTestName), HeaderTestEtalon);
+            Assert.AreEqual(HeaderTestBodyWithSpaces.GetHeaderValue(HeaderTestName), HeaderTestEtalon);
             Assert.AreEqual(HeaderTestBody.GetHeaderValue(HeaderTestName, HeaderAttributeTestName), HeaderAttributeTestEtalon);
         }
 

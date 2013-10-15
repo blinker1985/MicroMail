@@ -1,12 +1,16 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Timers;
 using System.Windows;
 using MicroMail.Infrastructure;
+using MicroMail.Infrastructure.MailStorage;
 using MicroMail.Infrastructure.Messaging;
 using MicroMail.Infrastructure.Messaging.Events;
 using MicroMail.Models;
 using MicroMail.Services;
+using MicroMail.Services.Imap;
+using MicroMail.Services.Pop3;
 using MicroMail.Windows;
 using Ninject;
 using Ninject.Syntax;
@@ -26,6 +30,7 @@ namespace MicroMail
         private readonly EventBus _eventBus;
         private readonly IResolutionRoot _injector;
         private readonly AsyncObservableCollection<EmailGroupModel> _emailGroupList;
+        private readonly IMailStorage _mailStorage;
         private bool _newMailInList;
 
         [Inject]
@@ -33,13 +38,15 @@ namespace MicroMail
             EventBus eventBus, 
             IResolutionRoot injector, 
             AsyncObservableCollection<EmailGroupModel> emailGroupList,
-            ApplicationSettingsModel appSettings)
+            ApplicationSettingsModel appSettings,
+            IMailStorage mailStorage)
         {
             _accountsSettings = accountsSettings;
             _eventBus = eventBus;
             _injector = injector;
             _emailGroupList = emailGroupList;
             _appSettings = appSettings;
+            _mailStorage = mailStorage;
         }
 
         public void Start(Application application)
@@ -94,16 +101,21 @@ namespace MicroMail
 
         private void InitServices()
         {
-            foreach (var service in _servicesPool)
-            {
-                service.Value.Stop();
-            }
+            StopAllServices();
 
             _servicesPool.Clear();
 
             foreach (var account in _accountsSettings.Accounts)
             {
                 StartAccount(account);
+            }
+        }
+
+        private void StopAllServices()
+        {
+            foreach (var service in _servicesPool)
+            {
+                service.Value.Stop();
             }
         }
 
@@ -127,6 +139,7 @@ namespace MicroMail
 
         private void ApplicationOnExit(object sender, ExitEventArgs exitEventArgs)
         {
+            StopAllServices();
             _tray.Dispose();
         }
 
@@ -160,12 +173,50 @@ namespace MicroMail
 
         private void StartAccount(Account account)
         {
-            var service = account != null ? _injector.Get(account.ServiceType) as IFetchMailService : null;
+            var service = GetIncomingServiceForAccount(account);
 
             if (service == null) return;
-            _emailGroupList.Add(service.EmailGroup);
+
             _servicesPool.Add(account.Id, service);
-            service.Start(account);
+            service.Init(account);
+            _emailGroupList.Add(service.EmailGroup);
+
+            ManageEmailGroupByStorage(service.EmailGroup, account);
+
+            service.Start();
+        }
+
+        private void ManageEmailGroupByStorage(EmailGroupModel group, Account account)
+        {
+            if (_mailStorage == null) return;
+             
+            if (account.SaveEmailsLocally)
+            {
+                _mailStorage.WatchEmailGroup(group);
+            }
+            else
+            {
+                _mailStorage.UnwatchEmailGroup(group);
+            }
+        }
+
+        private IFetchMailService GetIncomingServiceForAccount(Account account)
+        {
+            if (account == null) return null;
+
+            Type serviceType = null;
+
+            switch (account.ProtocolType)
+            {
+                case ProtocolTypeEnum.Imap:
+                    serviceType = typeof(ImapService);
+                    break;
+                case ProtocolTypeEnum.Pop3:
+                    serviceType = typeof (Pop3Service);
+                    break;
+            }
+
+            return _injector.Get(serviceType) as IFetchMailService;
         }
 
         private void ServiceMailFetchedHandler(object o)
@@ -194,10 +245,8 @@ namespace MicroMail
 
         private void FetchMailBodyCallback(FetchMailBodyEvent e)
         {
-            this.Debug("Fetch Body");
-
             var email = e.Email;
-            var service = email != null && _servicesPool.ContainsKey(e.Email.ServiceId) ? _servicesPool[e.Email.ServiceId] : null;
+            var service = email != null && _servicesPool.ContainsKey(e.Email.AccountId) ? _servicesPool[e.Email.AccountId] : null;
 
             if (service == null) return;
 

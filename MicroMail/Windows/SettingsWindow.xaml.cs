@@ -67,7 +67,10 @@ namespace MicroMail.Windows
             var acc = (Account) AccountsList.SelectedItem;
             if (acc == null) return;
 
-            var res = MessageBox.Show("Are you sure you want to delete " + acc.Name + " account?", "Warning", MessageBoxButton.YesNo);
+            var appendix = acc.SaveEmailsLocally ? " (and its locally saved emails)" : "";
+            var message = string.Format("Are you sure you want to delete " + acc.Name + " account{0}?", appendix);
+
+            var res = MessageBox.Show(message, "Warning", MessageBoxButton.YesNo);
 
             if (res == MessageBoxResult.Yes)
             {

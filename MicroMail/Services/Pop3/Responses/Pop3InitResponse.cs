@@ -2,17 +2,22 @@
 
 namespace MicroMail.Services.Pop3.Responses
 {
-    class Pop3InitResponse : ResponseBase
+    class Pop3InitResponse : Pop3SingleLineResponse
     {
         public string HashSalt { get; private set; }
 
-        public override void ParseRawResponse(RawObject raw)
+        protected override bool IsLastLine(string line)
         {
-            base.ParseRawResponse(raw);
-            var lastSpaceIndex = raw.Message.LastIndexOf(" ", StringComparison.InvariantCulture);
-            if(lastSpaceIndex > 0)
+            return true;
+        }
+
+        protected override void Complete()
+        {
+            var message = ResponseDetails.Body;
+            var lastSpaceIndex = message.LastIndexOf(" ", StringComparison.InvariantCulture);
+            if (lastSpaceIndex > 0)
             {
-                HashSalt = raw.Message.Substring(lastSpaceIndex).Trim();
+                HashSalt = message.Substring(lastSpaceIndex).Trim();
             }
         }
     }

@@ -54,7 +54,7 @@ namespace MicroMail.Windows
         }
 
         public string SingularId {
-            get { return Email != null ? Email.ServiceId + "_" + Email.Id : string.Empty; }
+            get { return Email != null ? Email.AccountId + "_" + Email.Id : string.Empty; }
         }
 
         private void UnloadedHandler(object sender, RoutedEventArgs routedEventArgs)

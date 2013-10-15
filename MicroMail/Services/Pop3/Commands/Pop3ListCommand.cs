@@ -3,15 +3,15 @@ using MicroMail.Services.Pop3.Responses;
 
 namespace MicroMail.Services.Pop3.Commands
 {
-    class Pop3InitCommand : ServiceCommandBase<Pop3InitResponse>
+    class Pop3ListCommand : ServiceCommandBase<Pop3ListResponse>
     {
-        public Pop3InitCommand(Action<Pop3InitResponse> callback) : base(callback)
+        public Pop3ListCommand(Action<Pop3ListResponse> callback) : base(callback)
         {
         }
 
         public override string Message
         {
-            get { return null; }
+            get { return "LIST"; }
         }
     }
 }

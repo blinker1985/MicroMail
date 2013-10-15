@@ -4,20 +4,12 @@ using MicroMail.Services.Imap.Responses;
 
 namespace MicroMail.Services.Imap.Commands
 {
-    class ImapFetchMailBodyCommand : ImapCommand<ImapFetchMailBodyResponse>
+    class ImapFetchMailBodyCommand : ImapCommandBase<ImapFetchMailBodyResponse>
     {
-        private const string Command = "FETCH {0} BODY[TEXT]";
         private readonly EmailModel _email;
-        public ImapFetchMailBodyCommand(EmailModel email, Action<ImapFetchMailBodyResponse> callback) : base(string.Format(Command, email.Id), callback)
+        public ImapFetchMailBodyCommand(EmailModel email, Action<ImapFetchMailBodyResponse> callback) : base(callback)
         {
             _email = email;
-        }
-
-        protected override ImapFetchMailBodyResponse GenerateResponse(RawObject raw)
-        {
-            var response = new ImapFetchMailBodyResponse(_email);
-            response.ParseRawResponse(raw);
-            return response;
         }
 
         public override System.Text.Encoding Encoding
@@ -28,6 +20,11 @@ namespace MicroMail.Services.Imap.Commands
                     ? base.Encoding
                     : System.Text.Encoding.GetEncoding(_email.Charset);
             }
+        }
+
+        public override string Message
+        {
+            get { return string.Format("FETCH {0} BODY[TEXT]", _email.Id); }
         }
     }
 }

@@ -2,10 +2,11 @@
 
 namespace MicroMail.Models
 {
+    [Serializable]
     public class EmailModel : BindableModel
     {
         public string Id { get; set; }
-        public string ServiceId { get; set; }
+        public string AccountId { get; set; }
         public string Subject { get; set; }
         public string Boundary { get; set; }
         public string ContentTransferEncoding { get; set; }

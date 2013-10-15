@@ -3,21 +3,15 @@ using MicroMail.Services.Imap.Responses;
 
 namespace MicroMail.Services.Imap.Commands
 {
-    class ImapSearchUnseenCommand : ImapCommand<ImapSearchUnseenResponse>
+    class ImapSearchUnseenCommand : ImapCommandBase<ImapSearchUnseenResponse>
     {
-        private const string SearchUnseen = "SEARCH UNSEEN";
-
-        public ImapSearchUnseenCommand(Action<ImapSearchUnseenResponse> callback)
-            : base(SearchUnseen, callback)
+        public ImapSearchUnseenCommand(Action<ImapSearchUnseenResponse> callback) : base(callback)
         {
 
         }
 
-        protected override ImapSearchUnseenResponse GenerateResponse(RawObject raw)
-        {
-            var response = new ImapSearchUnseenResponse();
-            response.ParseRawResponse(raw);
-            return response;
+        public override string Message {
+            get { return "SEARCH UNSEEN"; }
         }
     }
 }

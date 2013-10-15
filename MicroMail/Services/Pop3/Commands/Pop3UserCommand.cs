@@ -1,18 +1,20 @@
 ﻿using System;
-using System.Text;
+using MicroMail.Services.Pop3.Responses;
 
 namespace MicroMail.Services.Pop3.Commands
 {
-    class Pop3UserCommand : ServiceCommandBase<ResponseBase>
+    class Pop3UserCommand : ServiceCommandBase<Pop3SingleLineResponse>
     {
+        private readonly string _username;
+
         public Pop3UserCommand(string username, Action<ResponseBase> callback) : base(callback)
         {
-            BinMessage = Encoding.UTF8.GetBytes("USER " + username);
+            _username = username;
         }
 
-        protected override ResponseBase GenerateResponse(RawObject raw)
+        public override string Message
         {
-            return new ResponseBase();
+            get { return "USER " + _username; }
         }
     }
 }

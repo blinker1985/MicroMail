@@ -6,7 +6,8 @@ namespace MicroMail.Services
     {
         EmailGroupModel EmailGroup { get; }
         void CheckMail();
-        void Start(Account account);
+        void Init(Account account);
+        void Start();
         void Stop();
         void FetchMailBody(EmailModel email);
         ServiceStatusEnum CurrentStatus { get; }

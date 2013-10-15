@@ -1,4 +1,5 @@
 ﻿using MicroMail.Infrastructure;
+using MicroMail.Infrastructure.MailStorage;
 using MicroMail.Infrastructure.Messaging;
 using MicroMail.Models;
 using Ninject.Modules;
@@ -15,6 +16,7 @@ namespace MicroMail
             Bind<AsyncObservableCollection<EmailGroupModel>>().ToSelf().InSingletonScope();
             Bind<ApplicationWorker>().ToSelf();
             Bind<WindowsAllocator>().ToSelf();
+            Bind<IMailStorage>().To<LocalMailStorage>().InSingletonScope();
         }
     }
 }

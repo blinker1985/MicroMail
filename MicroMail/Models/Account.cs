@@ -5,29 +5,31 @@ using MicroMail.Services.Pop3;
 
 namespace MicroMail.Models
 {
+    public enum ProtocolTypeEnum
+    {
+        Imap, Pop3
+    }
+
     [Serializable]
     public class Account
     {
-        private readonly string _id;
-
         public Account()
         {
-            _id = Guid.NewGuid().ToString();
+            Id = Guid.NewGuid().ToString();
         }
 
-        public string Id
-        {
-            get { return _id; }
-        }
-
-        public Type ServiceType {
-            get { return typeof(Pop3Service); }
-        }
+        //TODO: incapsulate the setter.
+        public string Id { get; set; }
 
         public string Name { get; set; }
         public string Login { get; set; }
         public string Host { get; set; }
         public int Port { get; set; }
+
+        public bool DeleteReadEmails { get; set; }
+        public bool SaveEmailsLocally { get; set; }
+
+        public ProtocolTypeEnum ProtocolType { get; set; }
 
         public string EncryptedPassword;
 

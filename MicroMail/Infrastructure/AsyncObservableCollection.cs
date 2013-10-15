@@ -1,10 +1,12 @@
-﻿using System.Collections.ObjectModel;
+﻿using System;
+using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.ComponentModel;
 using System.Threading;
 
 namespace MicroMail.Infrastructure
 {
+    [Serializable]
     public class AsyncObservableCollection<T> : ObservableCollection<T>
     {
         private readonly SynchronizationContext _syncContext = SynchronizationContext.Current;

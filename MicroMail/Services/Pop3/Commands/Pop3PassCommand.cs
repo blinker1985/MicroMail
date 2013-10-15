@@ -1,19 +1,36 @@
 ﻿using System;
-using System.Text;
+using System.IO;
+using MicroMail.Infrastructure;
+using MicroMail.Infrastructure.Helpers;
+using MicroMail.Models;
+using MicroMail.Services.Pop3.Responses;
+using System.Net.Security;
 
 namespace MicroMail.Services.Pop3.Commands
 {
-    class Pop3PassCommand : ServiceCommandBase<ResponseBase>
+    class Pop3PassCommand : ServiceCommandBase<Pop3SingleLineResponse>
     {
-        public Pop3PassCommand(string pass, Action<ResponseBase> callback)
+        private readonly Account _account;
+
+        public Pop3PassCommand(Account account, Action<ResponseBase> callback)
             : base(callback)
         {
-            BinMessage = Encoding.UTF8.GetBytes("PASS " + pass);
+            _account = account;
         }
 
-        protected override ResponseBase GenerateResponse(RawObject raw)
+        public override string Message {
+            get { return "PASS {0}"; }
+        }
+
+        protected override void Write(SslStream ssl)
         {
-            return new ResponseBase();
+            if (string.IsNullOrEmpty(Message)) return;
+
+            var writer = new StreamWriter(ssl);
+
+            writer.WriteLine(Message, AccountHelper.ToInsecurePassword(_account.SecuredPassword));
+            writer.Flush();
+            this.Debug(Message);
         }
     }
 }

@@ -2,7 +2,7 @@
 {
     class IdGenerator
     {
-        private const string PrefixTemplate = "imap000";
+        private const string PrefixTemplate = "imap";
 
         private static int _prefixIndex;
 

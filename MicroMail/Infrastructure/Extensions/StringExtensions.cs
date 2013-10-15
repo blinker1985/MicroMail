@@ -3,10 +3,6 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Linq;
-using MicroMail.Infrastructure.Helpers;
-using MicroMail.Models;
-using MicroMail.Services;
-using MicroMail.Services.Pop3.Commands;
 
 namespace MicroMail.Infrastructure.Extensions
 {
@@ -15,8 +11,8 @@ namespace MicroMail.Infrastructure.Extensions
         public static string GetHeaderValue(this string body, string name, string attribute = null)
         {
             var re = string.IsNullOrEmpty(attribute)
-                ? string.Format("{0}:(?<result>.*?)(;|\\r\\n[^ ]|$)", name)
-                : string.Format("{0}:.*?\\s*{1}=\\\\?\"?(?<result>.*?)\\\\?\"?(;|\\r\\n[^ ]|$)", name, attribute);
+                ? string.Format("(^|\\r\\n){0}:(?<result>.*?)(;|\\r\\n[^ ]|$)", name)
+                : string.Format("(^|\\r\\n){0}:.*?\\s*{1}\\s*=\\s*\\\\?\"?(?<result>.*?)\\\\?\"?(;|\\r\\n[^ ]|$)", name, attribute);
             var match = new Regex(re, RegexOptions.IgnoreCase|RegexOptions.Singleline).Match(body);
             return match.Groups["result"].Value.Trim();
         }
@@ -41,7 +37,8 @@ namespace MicroMail.Infrastructure.Extensions
         public static string DecodeBase64(this string text, string charset)
         {
             var ba = Convert.FromBase64String(text);
-            var decodedBa = Encoding.Convert(Encoding.GetEncoding(charset), Encoding.Unicode, ba);
+            var encoding = string.IsNullOrEmpty(charset) ? Encoding.Default : Encoding.GetEncoding(charset);
+            var decodedBa = Encoding.Convert(encoding, Encoding.Unicode, ba);
             return Encoding.Unicode.GetString(decodedBa);
         }
 

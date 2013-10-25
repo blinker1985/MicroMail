@@ -57,6 +57,9 @@ namespace MicroMail
             _eventBus.Subscribe(PlainServiceEvents.NewMailFetched, ServiceMailFetchedHandler);
             _eventBus.Subscribe<FetchMailBodyEvent>(FetchMailBodyCallback);
             _eventBus.Subscribe<ServiceStatusEvent>(ServiceStateCallback);
+            _eventBus.Subscribe<MarkMailAsReadEvent>(MarkMailAsReadCallback);
+
+            _mailStorage.Load();
 
             InitTray();
             InitServices();
@@ -71,6 +74,7 @@ namespace MicroMail
         private void CheckMailInAllServices()
         {
             _tray.ShowRefreshingIcon();
+            // TODO: we shouldn't check mail in services that didn't finish checking yet.
             foreach (var service in _servicesPool)
             {
                 service.Value.CheckMail();
@@ -180,24 +184,8 @@ namespace MicroMail
             _servicesPool.Add(account.Id, service);
             service.Init(account);
             _emailGroupList.Add(service.EmailGroup);
-
-            ManageEmailGroupByStorage(service.EmailGroup, account);
-
+            _mailStorage.AddLoadedEmails(service.EmailGroup);
             service.Start();
-        }
-
-        private void ManageEmailGroupByStorage(EmailGroupModel group, Account account)
-        {
-            if (_mailStorage == null) return;
-             
-            if (account.SaveEmailsLocally)
-            {
-                _mailStorage.WatchEmailGroup(group);
-            }
-            else
-            {
-                _mailStorage.UnwatchEmailGroup(group);
-            }
         }
 
         private IFetchMailService GetIncomingServiceForAccount(Account account)
@@ -229,6 +217,8 @@ namespace MicroMail
             _newMailInList = true;
             ShowIdleIcon();
 
+            SaveMailInStorage();
+
             if (count > 1)
             {
                 _tray.ShowNotification("Mail", "You have new mail. Click here to see", 10);
@@ -258,19 +248,31 @@ namespace MicroMail
             switch (e.Status)
             {
                 case ServiceStatusEnum.Disconnected:
-                case ServiceStatusEnum.FailedRead:
                     _tray.ShowErrorIcon("Disconnected.");
                     break;
 
                 case ServiceStatusEnum.CheckingMail:
-                case ServiceStatusEnum.Logging:
-                case ServiceStatusEnum.SyncFolder:
                     _tray.ShowRefreshingIcon();
                     break;
 
                 default:
                     ShowIdleIcon();
                     break;
+            }
+        }
+
+        private void MarkMailAsReadCallback(MarkMailAsReadEvent e)
+        {
+            var email = e != null ? e.Email : null;
+
+            if (email == null) return;
+
+            email.IsRead = true;
+            var account = _accountsSettings.Accounts.FirstOrDefault(m => m.Id == email.AccountId);
+
+            if (account != null && account.SaveEmailsLocally)
+            {
+                SaveMailInStorage();
             }
         }
 
@@ -286,6 +288,15 @@ namespace MicroMail
             {
                 _tray.ShowNormalIcon();
             }
+        }
+
+        private void SaveMailInStorage()
+        {
+            var groups = _accountsSettings.Accounts
+                                          .Where(m => m.SaveEmailsLocally)
+                                          .Select(m => _servicesPool[m.Id].EmailGroup)
+                                          .ToArray();
+            _mailStorage.Save(groups);
         }
 
     }

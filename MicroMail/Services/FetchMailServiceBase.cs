@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using System.Collections.Specialized;
 using System.Net.Security;
 using System.Net.Sockets;
 using System.Threading;
@@ -30,10 +29,10 @@ namespace MicroMail.Services
         public ServiceStatusEnum CurrentStatus
         {
             get { return _currentStatus; }
-            private set
+            protected set
             {
                 _currentStatus = value;
-                TriggetEvent(new ServiceStatusEvent(value));
+                TriggerEvent(new ServiceStatusEvent(value));
             }
         }
 
@@ -78,51 +77,46 @@ namespace MicroMail.Services
             }
         }
 
-        protected void SendCommand(IServiceCommand request, ServiceStatusEnum status)
+        protected void SendCommand(IServiceCommand request)
         {
             if (request == null) return;
 
-            var thread = new Thread(() =>
-            {
-                lock (_locker)
-                {
-                    SendCommandAsync(request, status);
-                }
-            });
+            var thread = new Thread(() => SendCommandAsync(request));
             thread.Start();
         }
 
-        private void SendCommandAsync(IServiceCommand command, ServiceStatusEnum status)
+        private void SendCommandAsync(IServiceCommand command)
         {
-            CurrentStatus = status;
-            var newStatus = ServiceStatusEnum.Idle;
-
-            if (_tcpClient == null || !_tcpClient.Connected)
+            lock (_locker)
             {
-                CurrentStatus = ServiceStatusEnum.Disconnected;
-                return;
+                if (_tcpClient == null || !_tcpClient.Connected)
+                {
+                    CurrentStatus = ServiceStatusEnum.Disconnected;
+                    return;
+                }
+
+                command.Execute(_ssl);
+
+                //try
+                //{
+                //    command.Execute(_ssl);
+                //}
+                //catch
+                //{
+                //    //TODO: Dispatch error event with exception description.
+                //    newStatus = ServiceStatusEnum.FailedRead;
+                //}
             }
-
-            command.Execute(_ssl);
-
-            //try
-            //{
-            //    command.Execute(_ssl);
-            //}
-            //catch
-            //{
-            //    newStatus = ServiceStatusEnum.FailedRead;
-            //}
-
-            CurrentStatus = newStatus;
+            
+            
         }
 
-        protected void TriggetEvent(object e)
+        protected void TriggerEvent(object e)
         {
             _eventBus.Trigger(e);
         }
 
-        protected void TriggetEvent(string e)
+        protected void TriggerEvent(string e)
         {
             _eventBus.Trigger(e);
         }
@@ -133,7 +127,7 @@ namespace MicroMail.Services
             {
                 EmailGroup.EmailList.Add(email);
             }
-            TriggetEvent(PlainServiceEvents.NewMailFetched);
+            TriggerEvent(PlainServiceEvents.NewMailFetched);
         }
 
     }

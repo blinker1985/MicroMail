@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using MicroMail.Infrastructure.Helpers;
 using MicroMail.Infrastructure.Messaging;
@@ -18,19 +19,20 @@ namespace MicroMail.Services.Imap
 
         public override void Login()
         {
-            SendCommand(new ImapInitCommand(), ServiceStatusEnum.Logging);
-            SendCommand(new ImapLoginCommand(Account, null), ServiceStatusEnum.Logging);
-            SendCommand(new ImapSelectRootFolderCommand(null), ServiceStatusEnum.SyncFolder);
+            SendCommand(new ImapInitCommand());
+            SendCommand(new ImapLoginCommand(Account, null));
+            SendCommand(new ImapSelectRootFolderCommand(null));
         }
 
         public override void CheckMail()
         {
-            SendCommand(new ImapSearchUnseenCommand(CheckMailResponder), ServiceStatusEnum.CheckingMail);
+            CurrentStatus = ServiceStatusEnum.CheckingMail;
+            SendCommand(new ImapSearchUnseenCommand(CheckMailResponder));
         }
 
         public override void FetchMailBody(EmailModel email)
         {
-            SendCommand(new ImapFetchMailBodyCommand(email, r => EmailDecodingHelper.DecodeMailBody(r.Body, email)), ServiceStatusEnum.CheckingMail);
+            SendCommand(new ImapFetchMailBodyCommand(email, r => EmailDecodingHelper.DecodeMailBody(r.MailBody, email)));
         }
 
         private IServiceCommand CreateFetchMailHeadersCommand(string id, Action<EmailModel> callback)
@@ -49,13 +51,19 @@ namespace MicroMail.Services.Imap
             FetchMailHeaders(response.UnseenIds);
         }
 
-        private void FetchMailHeaders(string[] ids)
+        private void FetchMailHeaders(IEnumerable<string> ids)
         {
-            if (ids == null) return;
-
-            var count = ids.Count();
+            var sortedIds = ids != null 
+                ? ids.Where(m => EmailGroup.EmailList.All(e => e.Id != m)).OrderByDescending(m => m).ToArray()
+                : new string[0];
+            var count = sortedIds.Count();
             var fetchedCount = 0;
-            var sortedIds = ids.Where(m => EmailGroup.EmailList.All(e => e.Id != m)).OrderByDescending(m => m);
+
+            if (count == 0)
+            {
+                CurrentStatus = ServiceStatusEnum.Idle;
+                return;
+            }
 
             foreach (var id in sortedIds)
             {
@@ -68,11 +76,11 @@ namespace MicroMail.Services.Imap
                     m.AccountId = AccountId;
                     EmailGroup.EmailList.Add(m);
 
-                    if (fetchedCount == count)
-                    {
-                        TriggetEvent(PlainServiceEvents.NewMailFetched);
-                    }
-                }), ServiceStatusEnum.RetreivingHeaders);
+                    if (fetchedCount != count) return;
+
+                    CurrentStatus = ServiceStatusEnum.Idle;
+                    TriggerEvent(PlainServiceEvents.NewMailFetched);
+                }));
             }
         }
 

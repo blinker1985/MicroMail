@@ -1,9 +1,10 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
-using System.Collections.Specialized;
 using System.IO;
 using System.IO.Compression;
 using System.Runtime.Serialization.Formatters.Binary;
+using System.Threading;
 using MicroMail.Models;
 using System.Linq;
 
@@ -11,36 +12,11 @@ namespace MicroMail.Infrastructure.MailStorage
 {
     class LocalMailStorage : IMailStorage
     {
-        private readonly List<EmailGroupModel> _groups = new List<EmailGroupModel>();
         private Dictionary<string, SerializableEmailModel[]> _loadedData;
         private string _applicationDirectory;
+        private readonly object _locker = new object();
 
-        public LocalMailStorage()
-        {
-            Init();
-        }
-
-        public void WatchEmailGroup(EmailGroupModel group)
-        {
-            _groups.Add(group);
-            AddLoadedEmailsToGroup(group);
-            group.EmailList.CollectionChanged += EmailListOnCollectionChanged;
-            Save();
-        }
-
-        public void UnwatchEmailGroup(EmailGroupModel group)
-        {
-            _groups.Remove(group);
-            group.EmailList.CollectionChanged -= EmailListOnCollectionChanged;
-            Save();
-        }
-
-        private void EmailListOnCollectionChanged(object sender, NotifyCollectionChangedEventArgs args)
-        {
-            Save();
-        }
-
-        private void Init()
+        public void Load()
         {
             var homePath = Environment.OSVersion.Platform == PlatformID.Unix || Environment.OSVersion.Platform == PlatformID.MacOSX
                      ? Environment.GetEnvironmentVariable("HOME")
@@ -63,36 +39,40 @@ namespace MicroMail.Infrastructure.MailStorage
                     : new SerializableEmailModel[0];
             }
 
-
             _loadedData = loadedArray != null
                 ? loadedArray.GroupBy(m => m.AccountId).ToDictionary(m => m.Key, m => m.ToArray())
                 : new Dictionary<string, SerializableEmailModel[]>();
         }
 
-        private void Save()
+        public void Save(EmailGroupModel[] groups)
         {
-            var path = Path.Combine(_applicationDirectory, "groups.mmd");
-            var bf = new BinaryFormatter();
-            var savingData = new List<SerializableEmailModel>();
-
-            foreach (var group in _groups)
-            {
-                savingData.AddRange(group.EmailList.Select(m => new SerializableEmailModel(m)));
-            }
+            var savingData = groups.SelectMany(m => m.EmailList).Select(m => new SerializableEmailModel(m)).ToArray();
 
             if (!savingData.Any()) return;
 
-            using(var ms = new MemoryStream())
-            using (var fs = new FileStream(path, FileMode.OpenOrCreate, FileAccess.ReadWrite))
-            using (var zs = new GZipStream(fs, CompressionLevel.Optimal))
+            var thread = new Thread(() => SaveAsync(savingData));
+            thread.Start();
+        }
+
+        private void SaveAsync(IEnumerable data)
+        {
+            lock (_locker)
             {
-                bf.Serialize(ms, savingData.ToArray());
-                var b = ms.GetBuffer();
-                zs.Write(b, 0, b.Length);
+                var path = Path.Combine(_applicationDirectory, "groups.mmd");
+                var bf = new BinaryFormatter();
+
+                using (var ms = new MemoryStream())
+                using (var fs = new FileStream(path, FileMode.OpenOrCreate, FileAccess.ReadWrite))
+                using (var zs = new GZipStream(fs, CompressionLevel.Optimal))
+                {
+                    bf.Serialize(ms, data);
+                    var b = ms.GetBuffer();
+                    zs.Write(b, 0, b.Length);
+                }
             }
         }
 
-        private void AddLoadedEmailsToGroup(EmailGroupModel group)
+        public void AddLoadedEmails(EmailGroupModel @group)
         {
             if (!_loadedData.ContainsKey(group.AccountId)) return;
 
@@ -103,6 +83,8 @@ namespace MicroMail.Infrastructure.MailStorage
 
             _loadedData.Remove(group.AccountId);
         }
+
+        #region Private Model
 
         [Serializable]
         private class SerializableEmailModel
@@ -167,5 +149,6 @@ namespace MicroMail.Infrastructure.MailStorage
             }
         }
 
+        #endregion
     }
 }

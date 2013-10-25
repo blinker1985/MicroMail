@@ -7,24 +7,26 @@ namespace MicroMail.Services.Imap.Responses
     {
         public EmailModel Email { get; set; }
 
-        protected override void Complete()
+        public override void ParseResponseDetails(string message)
         {
-            if (ResponseDetails.Status != "OK") return;
+            base.ParseResponseDetails(message);
 
-            var message = ResponseDetails.Body;
-            var contentType = message.GetHeaderValue("content-type");
+            if (Status != "OK") return;
+
+            var contentType = Body.GetHeaderValue("content-type");
 
             Email = new EmailModel
             {
-                Date = message.GetHeaderValue("date").ParseDateString(),
-                Subject = message.GetHeaderValue("subject").DecodeEncodedWord().ReplaceAllNewLines(),
-                From = message.GetHeaderValue("from").DecodeEncodedWord(),
-                Boundary = message.GetHeaderValue("content-type", "boundary"),
-                ContentTransferEncoding = message.GetHeaderValue("content-transfer-encoding"),
+                Date = Body.GetHeaderValue("date").ParseDateString(),
+                Subject = Body.GetHeaderValue("subject").DecodeEncodedWord().ReplaceAllNewLines(),
+                From = Body.GetHeaderValue("from").DecodeEncodedWord(),
+                Boundary = Body.GetHeaderValue("content-type", "boundary"),
+                ContentTransferEncoding = Body.GetHeaderValue("content-transfer-encoding"),
                 ContentType = contentType,
-                Charset = message.GetHeaderValue("content-type", "charset"),
+                Charset = Body.GetHeaderValue("content-type", "charset"),
                 IsMultipart = contentType.ToLowerInvariant().Contains("multipart/")
             };
         }
+
     }
 }

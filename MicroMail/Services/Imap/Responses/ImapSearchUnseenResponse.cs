@@ -7,22 +7,23 @@ namespace MicroMail.Services.Imap.Responses
     {
         public string[] UnseenIds { get; set; }
 
-        protected override void Complete()
+        public override void ParseResponseDetails(string message)
         {
-            if (ResponseDetails.Status != "OK") return;
+            base.ParseResponseDetails(message);
 
-            var message = ResponseDetails.Body;
+            if (Status != "OK") return;
 
             const string startStr = "SEARCH";
-            var searchIndex = message.IndexOf(startStr, 0, StringComparison.InvariantCulture);
+            var searchIndex = Body.IndexOf(startStr, 0, StringComparison.InvariantCulture);
             UnseenIds = searchIndex <= 0
                 ? new string[0]
-                : message.Substring(searchIndex + startStr.Length)
+                : Body.Substring(searchIndex + startStr.Length)
                          .Trim()
                          .Split(' ')
                          .Select(m => m.Trim())
                          .Where(m => !string.IsNullOrEmpty(m))
                          .ToArray();
         }
+
     }
 }

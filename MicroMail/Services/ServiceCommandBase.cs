@@ -36,6 +36,8 @@ namespace MicroMail.Services
             NotifyCallback();
         }
 
+        protected abstract bool IsLastLine(string line);
+
         protected virtual void Write(SslStream ssl)
         {
             if (string.IsNullOrEmpty(Message)) return;
@@ -49,11 +51,15 @@ namespace MicroMail.Services
         protected virtual void Read(SslStream ssl)
         {
             var reader = new StreamReader(ssl, Encoding);
-
-            while (!_response.Completed)
+            var sb = new StringBuilder();
+            string line;
+            do
             {
-                _response.WriteLine(reader.ReadLine());
-            }
+                line = reader.ReadLine();
+                sb.AppendLine(line);
+            } while (!IsLastLine(line));
+
+            _response.ParseResponseDetails(sb.ToString());
         }
 
     }

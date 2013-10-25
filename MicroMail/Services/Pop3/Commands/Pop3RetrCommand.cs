@@ -3,7 +3,7 @@ using MicroMail.Services.Pop3.Responses;
 
 namespace MicroMail.Services.Pop3.Commands
 {
-    class Pop3RetrCommand : ServiceCommandBase<Pop3RetrResponse>
+    class Pop3RetrCommand : Pop3MultiLineCommand<Pop3RetrResponse>
     {
         private readonly string _id ;
         public Pop3RetrCommand(string id, Action<Pop3RetrResponse> callback) : base(callback)

@@ -3,9 +3,10 @@ using MicroMail.Services.Pop3.Responses;
 
 namespace MicroMail.Services.Pop3.Commands
 {
-    class Pop3QuitCommand : ServiceCommandBase<Pop3SingleLineResponse>
+    class Pop3QuitCommand : Pop3SingleLineCommand<Pop3Response>
     {
-        public Pop3QuitCommand(Action<Pop3SingleLineResponse> callback) : base(callback)
+        public Pop3QuitCommand(Action<Pop3Response> callback)
+            : base(callback)
         {
 
         }

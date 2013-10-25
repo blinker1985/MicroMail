@@ -12,5 +12,10 @@ namespace MicroMail.Services.Imap.Commands
         {
             get { return null; }
         }
+
+        protected override bool IsLastLine(string line)
+        {
+            return true;
+        }
     }
 }

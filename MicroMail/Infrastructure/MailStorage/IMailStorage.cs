@@ -4,7 +4,8 @@ namespace MicroMail.Infrastructure.MailStorage
 {
     public interface IMailStorage
     {
-        void WatchEmailGroup(EmailGroupModel group);
-        void UnwatchEmailGroup(EmailGroupModel group);
+        void Save(EmailGroupModel[] groups);
+        void Load();
+        void AddLoadedEmails(EmailGroupModel group);
     }
 }

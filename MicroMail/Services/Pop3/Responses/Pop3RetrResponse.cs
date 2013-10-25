@@ -5,18 +5,17 @@ using MicroMail.Models;
 
 namespace MicroMail.Services.Pop3.Responses
 {
-    class Pop3RetrResponse : Pop3MultilineResponse
+    class Pop3RetrResponse : ResponseBase
     {
         public EmailModel Email { get; set; }
 
-        protected override void Complete()
+        public override void ParseResponseDetails(string message)
         {
-            var message = ResponseDetails.Body;
             var match = new Regex("(?<headers>.*?)\\r\\n\\r\\n(?<body>.*)\\.", RegexOptions.Singleline).Match(message);
 
             var headerSection = match.Groups["headers"].Value;
             var bodySection = match.Groups["body"].Value;
-            
+
             var contentType = message.GetHeaderValue("content-type");
 
             Email = new EmailModel
@@ -33,5 +32,6 @@ namespace MicroMail.Services.Pop3.Responses
 
             EmailDecodingHelper.DecodeMailBody(bodySection, Email);
         }
+
     }
 }

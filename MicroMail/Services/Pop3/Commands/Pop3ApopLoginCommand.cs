@@ -9,12 +9,12 @@ using MicroMail.Services.Pop3.Responses;
 
 namespace MicroMail.Services.Pop3.Commands
 {
-    class Pop3ApopLoginCommand : ServiceCommandBase<Pop3SingleLineResponse>
+    class Pop3ApopLoginCommand : Pop3SingleLineCommand<Pop3Response>
     {
         private readonly Account _account ;
         private readonly string _timestamp ;
 
-        public Pop3ApopLoginCommand(Account account, string timestamp, Action<Pop3SingleLineResponse> callback)
+        public Pop3ApopLoginCommand(Account account, string timestamp, Action<Pop3Response> callback)
             : base(callback)
         {
             _account = account;

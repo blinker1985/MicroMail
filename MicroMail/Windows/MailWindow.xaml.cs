@@ -102,6 +102,7 @@ namespace MicroMail.Windows
             {
                 return;
             }
+
             var bytes = Encoding.GetEncoding(Email.Charset,
                                           new EncoderExceptionFallback(),
                                           new DecoderExceptionFallback())
@@ -111,11 +112,15 @@ namespace MicroMail.Windows
             //In case we're updated from non-UI thread.
             Dispatcher.Invoke(() => MessageWebView.NavigateToStream(_contentStream));
             _isRendered = true;
-            Email.IsRead = true;
         }
 
         private void MessageWebViewOnNavigated(object sender, NavigationEventArgs navigationEventArgs)
         {
+            if (!Email.IsRead)
+            {
+                _eventBus.Trigger(new MarkMailAsReadEvent(Email));
+            }
+
             if (_contentStream != null)
             {
                 _contentStream.Dispose();

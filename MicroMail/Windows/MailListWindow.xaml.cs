@@ -75,10 +75,9 @@ namespace MicroMail.Windows
         private void ClickableListView_OnItemMouseDown(object sender, EventArgs args)
         {
             var email = sender as EmailModel;
-            if (email != null)
-            {
-                _eventBus.Trigger(new ShowMailWindowEvent(email));
-            }
+            if (email == null) return;
+
+            _eventBus.Trigger(new ShowMailWindowEvent(email));
         }
     }
 

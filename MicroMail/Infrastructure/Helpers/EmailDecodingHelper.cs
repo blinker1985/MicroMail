@@ -54,6 +54,8 @@ namespace MicroMail.Infrastructure.Helpers
 
         private static EmailBody ProcessMailPartsRecursively(string partBody, string boundary, int recursionLevel = 0)
         {
+            if (string.IsNullOrEmpty(partBody) || string.IsNullOrEmpty(boundary)) return null;
+
             boundary = boundary.EscapeRegexpSpecialChars();
             var re = new Regex(string.Format(MailPartDividerPattern, boundary), RegexOptions.IgnoreCase | RegexOptions.Singleline);
             var parts = re.Matches(partBody);

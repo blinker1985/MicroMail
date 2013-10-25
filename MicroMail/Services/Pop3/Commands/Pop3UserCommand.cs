@@ -3,7 +3,7 @@ using MicroMail.Services.Pop3.Responses;
 
 namespace MicroMail.Services.Pop3.Commands
 {
-    class Pop3UserCommand : ServiceCommandBase<Pop3SingleLineResponse>
+    class Pop3UserCommand : Pop3SingleLineCommand<Pop3Response>
     {
         private readonly string _username;
 

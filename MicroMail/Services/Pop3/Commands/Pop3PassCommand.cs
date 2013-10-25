@@ -8,7 +8,7 @@ using System.Net.Security;
 
 namespace MicroMail.Services.Pop3.Commands
 {
-    class Pop3PassCommand : ServiceCommandBase<Pop3SingleLineResponse>
+    class Pop3PassCommand : Pop3SingleLineCommand<Pop3Response>
     {
         private readonly Account _account;
 

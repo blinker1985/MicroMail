@@ -2,9 +2,6 @@
 {
     class ImapInitResponse : ImapResponseBase
     {
-        protected override void Complete()
-        {
-            
-        }
+
     }
 }

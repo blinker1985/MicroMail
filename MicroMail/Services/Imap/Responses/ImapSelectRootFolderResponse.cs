@@ -2,9 +2,6 @@
 {
     class ImapSelectRootFolderResponse : ImapResponseBase
     {
-        protected override void Complete()
-        {
-            
-        }
+
     }
 }

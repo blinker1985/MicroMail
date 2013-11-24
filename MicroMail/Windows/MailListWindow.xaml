@@ -16,7 +16,8 @@
         <Grid.Resources>
             <ResourceDictionary Source="../Themes/AccordionCustomTheme.xaml" />
         </Grid.Resources>
-        <toolkit:Accordion ItemsSource="{Binding Path=EmailGroupListModel}"
+        <toolkit:Accordion Name="EmailGroupAccourdion"
+                           ItemsSource="{Binding Path=EmailGroupListModel}"
                            HorizontalAlignment="Stretch"
                            HorizontalContentAlignment="Stretch"
                            ExpandDirection="Down"

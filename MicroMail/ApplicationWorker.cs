@@ -86,7 +86,6 @@ namespace MicroMail
             // TODO: (re-)init only the changed/added accounts instead of all.
 
             _timer.Stop();
-
             InitServices();
             ResetTimer();
         }
@@ -106,12 +105,26 @@ namespace MicroMail
         private void InitServices()
         {
             StopAllServices();
+            RemoveNotExistantAccounts();
 
             _servicesPool.Clear();
 
             foreach (var account in _accountsSettings.Accounts)
             {
                 StartAccount(account);
+            }
+        }
+
+        private void RemoveNotExistantAccounts()
+        {
+            for (var i = _emailGroupList.Count - 1; i >= 0; i--)
+            {
+                var group = _emailGroupList[i];
+
+                if (_accountsSettings.Accounts.All(m => m.Id != group.AccountId))
+                {
+                    _emailGroupList.Remove(group);
+                }
             }
         }
 
@@ -183,7 +196,12 @@ namespace MicroMail
 
             _servicesPool.Add(account.Id, service);
             service.Init(account);
-            _emailGroupList.Add(service.EmailGroup);
+
+            if (_emailGroupList.All(m => m.AccountId != account.Id))
+            {
+                _emailGroupList.Add(service.EmailGroup);
+            }
+            
             _mailStorage.AddLoadedEmails(service.EmailGroup);
             service.Start();
         }

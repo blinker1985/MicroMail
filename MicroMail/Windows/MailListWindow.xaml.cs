@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.Specialized;
 using System.ComponentModel;
 using System.Globalization;
 using System.Windows;
@@ -36,6 +37,12 @@ namespace MicroMail.Windows
             InitializeComponent();
             SetWindowRect();
             Closing += OnClosing;
+            _emailGroupListModel.CollectionChanged += EmailGroupListModelOnCollectionChanged;
+        }
+
+        private void EmailGroupListModelOnCollectionChanged(object sender, NotifyCollectionChangedEventArgs notifyCollectionChangedEventArgs)
+        {
+            EmailGroupAccourdion.UpdateLayout();
         }
 
         private readonly AsyncObservableCollection<EmailGroupModel> _emailGroupListModel;
@@ -58,6 +65,7 @@ namespace MicroMail.Windows
                 _appSettings.Save();
             }
             Closing -= OnClosing;
+            _emailGroupListModel.CollectionChanged -= EmailGroupListModelOnCollectionChanged;
         }
 
         private void SetWindowRect()

@@ -36,7 +36,8 @@ namespace MicroMail.Infrastructure.Helpers
                     break;
             }
 
-            emailBody.Content = FixHtml(emailBody.Content, emailBody.Charset);
+            FixEmailBody(emailBody);
+            
             email.Charset = emailBody.Charset;
             email.Body = emailBody.Content;
         }
@@ -66,6 +67,7 @@ namespace MicroMail.Infrastructure.Helpers
             {
                 var part = parts[i];
                 var contentType = part.Value.GetHeaderValue("content-type");
+                var headerCharset = part.Value.GetHeaderValue("content-type", "charset");
 
                 if (IsMultipartContent(contentType))
                 {
@@ -81,12 +83,15 @@ namespace MicroMail.Infrastructure.Helpers
                 if (!contentType.Equals(HtmlContentType, StringComparison.InvariantCultureIgnoreCase) && (i > 0 || recursionLevel != 0)) continue;
 
                 var match = new Regex(MailPartDetailsPattern, RegexOptions.Singleline).Match(part.Value);
+
+
+
                 result = new EmailBody
                 {
                     Content = match.Value,
                     ContentType = contentType,
                     ContentEncoding = part.Value.GetHeaderValue("content-transfer-encoding"),
-                    Charset = part.Value.GetHeaderValue("content-type", "charset")
+                    Charset = headerCharset
                 };
 
                 break;
@@ -123,17 +128,22 @@ namespace MicroMail.Infrastructure.Helpers
             return result;
         }
 
-        private static string FixHtml(string content, string charset)
+        private static void FixEmailBody(EmailBody emailBody)
         {
-            var contentTypeCheck = new Regex("<meta http-equiv=\"content-type\" content=\"text\\/html;\\s*charset=.*?>");
-            var charsetCheck = new Regex("<meta charset=\".*?\">");
+            var htmlCharset = new Regex("\\<meta.*?charset=(?<charset>[a-z0-9\\-]*).*?\\>")
+                                        .Match(emailBody.Content)
+                                        .Groups["charset"]
+                                        .Value;
 
-            if (contentTypeCheck.Match(content).Success || charsetCheck.Match(content).Success)
+            if (!string.IsNullOrEmpty(htmlCharset))
             {
-                return content;
+                emailBody.Charset = htmlCharset;
+                return;
             }
 
-            var meta = string.Format("<meta http-equiv=\"content-type\" content=\"text/html;charset={0}\"/>", charset);
+            var content = emailBody.Content;
+            
+            var meta = string.Format("<meta http-equiv=\"content-type\" content=\"text/html;charset={0}\"/>", emailBody.Charset);
             var bodyIndex = content.IndexOf("<body", 0, StringComparison.InvariantCultureIgnoreCase);
             var htmlIndex = content.IndexOf("<html", 0, StringComparison.InvariantCultureIgnoreCase);
 
@@ -156,7 +166,8 @@ namespace MicroMail.Infrastructure.Helpers
                 content = string.Format("<html>\r\n{0}\r\n</html>", content);
             }
 
-            return content;
+            emailBody.Content = content;
+
         }
 
     }

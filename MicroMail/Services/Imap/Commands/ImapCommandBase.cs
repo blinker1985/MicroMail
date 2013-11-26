@@ -17,7 +17,7 @@ namespace MicroMail.Services.Imap.Commands
 
         protected override bool IsLastLine(string line)
         {
-            return new Regex(string.Format(LastLinePattern, _id)).IsMatch(line);
+            return line != null && new Regex(string.Format(LastLinePattern, _id)).IsMatch(line);
         }
 
         override protected void Write(SslStream ssl)

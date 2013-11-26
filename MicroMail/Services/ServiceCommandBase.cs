@@ -16,7 +16,7 @@ namespace MicroMail.Services
         }
 
         public virtual Encoding Encoding {
-            get { return Encoding.Default; }
+            get { return Encoding.UTF8; }
         }
 
         public abstract string Message { get; }

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Text;
 using System.Text.RegularExpressions;
 using System.Linq;
 using MicroMail.Models;
@@ -37,7 +38,12 @@ namespace MicroMail.Infrastructure.Helpers
             }
 
             FixEmailBody(emailBody);
-            
+
+            if (string.IsNullOrEmpty(email.Charset))
+            {
+                emailBody.Content = ChangeEncoding(emailBody.Content, Encoding.UTF8, Encoding.GetEncoding(emailBody.Charset));
+            }
+
             email.Charset = emailBody.Charset;
             email.Body = emailBody.Content;
         }
@@ -51,6 +57,15 @@ namespace MicroMail.Infrastructure.Helpers
                     ContentType = email.ContentType,
                     Charset = email.Charset
                 };
+        }
+
+        private static string ChangeEncoding(string text, Encoding oldEncoding, Encoding newEncoding)
+        {
+            if (string.IsNullOrEmpty(text) || oldEncoding == null || newEncoding == null) 
+                return text;
+
+            var ba = oldEncoding.GetBytes(text.ToCharArray());
+            return newEncoding.GetString(Encoding.Convert(oldEncoding, newEncoding, ba));
         }
 
         private static EmailBody ProcessMailPartsRecursively(string partBody, string boundary, int recursionLevel = 0)
@@ -130,7 +145,7 @@ namespace MicroMail.Infrastructure.Helpers
 
         private static void FixEmailBody(EmailBody emailBody)
         {
-            var htmlCharset = new Regex("\\<meta.*?charset=(?<charset>[a-z0-9\\-]*).*?\\>")
+            var htmlCharset = new Regex("\\<meta.*?charset=(?<charset>[a-zA-Z0-9\\-]*).*?\\>")
                                         .Match(emailBody.Content)
                                         .Groups["charset"]
                                         .Value;

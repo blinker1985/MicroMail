@@ -6,6 +6,8 @@ using MicroMail.Infrastructure.Messaging;
 using MicroMail.Infrastructure.Messaging.Events;
 using MicroMail.Models;
 
+//#define DEBUG
+
 namespace MicroMail.Services
 {
     public abstract class FetchMailServiceBase : IFetchMailService
@@ -47,6 +49,25 @@ namespace MicroMail.Services
             AccountId = account.Id;
         }
 
+        public bool Test(Account account)
+        {
+            Init(account);
+
+            var result = TestConnection() && TestLogin();
+
+            Stop();
+
+            return result;
+        }
+
+        private bool TestConnection()
+        {
+            InitConnection();
+            return _tcpClient.Connected;
+        }
+
+        protected abstract bool TestLogin();
+
         public virtual void Start()
         {
             InitConnection();
@@ -77,15 +98,23 @@ namespace MicroMail.Services
             }
         }
 
-        protected void SendCommand(IServiceCommand request)
+        protected void SendCommandAsync(IServiceCommand request)
         {
             if (request == null) return;
 
-            var thread = new Thread(() => SendCommandAsync(request));
+            var thread = new Thread(() => ExecuteCommand(request));
             thread.Start();
         }
 
-        private void SendCommandAsync(IServiceCommand command)
+        protected void SendCommandSync(IServiceCommand request)
+        {
+            if (request != null)
+            {
+                ExecuteCommand(request);
+            }
+        }
+
+        private void ExecuteCommand(IServiceCommand command)
         {
             lock (_locker)
             {
@@ -95,17 +124,18 @@ namespace MicroMail.Services
                     return;
                 }
 
-                command.Execute(_ssl);
-
-                //try
-                //{
-                //    command.Execute(_ssl);
-                //}
-                //catch
-                //{
-                //    //TODO: Dispatch error event with exception description.
-                //    newStatus = ServiceStatusEnum.FailedRead;
-                //}
+#if !DEBUG
+                try
+                {
+#endif
+                    command.Execute(_ssl);
+#if !DEBUG
+                }
+                catch
+                {
+                    CurrentStatus = ServiceStatusEnum.Disconnected;
+                }
+#endif
             }
             
             

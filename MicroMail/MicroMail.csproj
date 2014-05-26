@@ -117,6 +117,7 @@
     <Compile Include="Infrastructure\Messaging\Events\ShowMailWindowEvent.cs" />
     <Compile Include="Infrastructure\Messaging\IExecutable.cs" />
     <Compile Include="ApplicationWorker.cs" />
+    <Compile Include="Infrastructure\OutgoingMailServiceResolver.cs" />
     <Compile Include="Infrastructure\WindowsAllocator.cs" />
     <Compile Include="Models\Account.cs" />
     <Compile Include="Models\ApplicationSettingsModel.cs" />

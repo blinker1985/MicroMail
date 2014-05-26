@@ -1,13 +1,18 @@
 ﻿using System;
 using System.Security;
+using System.Security.Authentication;
 using MicroMail.Infrastructure.Helpers;
-using MicroMail.Services.Pop3;
 
 namespace MicroMail.Models
 {
     public enum ProtocolTypeEnum
     {
         Imap, Pop3
+    }
+
+    public enum SecuringType
+    {
+        SslTls, StartTls
     }
 
     [Serializable]
@@ -30,6 +35,8 @@ namespace MicroMail.Models
         public bool SaveEmailsLocally { get; set; }
 
         public ProtocolTypeEnum ProtocolType { get; set; }
+
+        public SslProtocols SslProtocol { get; set; }
 
         public string EncryptedPassword;
 

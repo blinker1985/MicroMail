@@ -2,7 +2,7 @@
 
 namespace MicroMail.Services
 {
-    interface IFetchMailService
+    public interface IFetchMailService
     {
         EmailGroupModel EmailGroup { get; }
         void CheckMail();
@@ -11,5 +11,6 @@ namespace MicroMail.Services
         void Stop();
         void FetchMailBody(EmailModel email);
         ServiceStatusEnum CurrentStatus { get; }
+        bool Test(Account account);
     }
 }

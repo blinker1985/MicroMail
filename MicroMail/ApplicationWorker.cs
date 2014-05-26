@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using System.Timers;
 using System.Windows;
@@ -9,11 +8,8 @@ using MicroMail.Infrastructure.Messaging;
 using MicroMail.Infrastructure.Messaging.Events;
 using MicroMail.Models;
 using MicroMail.Services;
-using MicroMail.Services.Imap;
-using MicroMail.Services.Pop3;
 using MicroMail.Windows;
 using Ninject;
-using Ninject.Syntax;
 
 namespace MicroMail
 {
@@ -28,7 +24,7 @@ namespace MicroMail
         private readonly AccountsSettingsModel _accountsSettings;
         private readonly ApplicationSettingsModel _appSettings;
         private readonly EventBus _eventBus;
-        private readonly IResolutionRoot _injector;
+        private readonly OutgoingMailServiceResolver _serviceResolver;
         private readonly AsyncObservableCollection<EmailGroupModel> _emailGroupList;
         private readonly IMailStorage _mailStorage;
         private bool _newMailInList;
@@ -36,14 +32,14 @@ namespace MicroMail
         [Inject]
         public ApplicationWorker(AccountsSettingsModel accountsSettings, 
             EventBus eventBus, 
-            IResolutionRoot injector, 
+            OutgoingMailServiceResolver serviceResolver, 
             AsyncObservableCollection<EmailGroupModel> emailGroupList,
             ApplicationSettingsModel appSettings,
             IMailStorage mailStorage)
         {
             _accountsSettings = accountsSettings;
             _eventBus = eventBus;
-            _injector = injector;
+            _serviceResolver = serviceResolver;
             _emailGroupList = emailGroupList;
             _appSettings = appSettings;
             _mailStorage = mailStorage;
@@ -144,7 +140,8 @@ namespace MicroMail
 
         private void TraySettingsHandler()
         {
-            var window = new SettingsWindow(_accountsSettings);
+            // TODO: Use injection here!
+            var window = new SettingsWindow(_accountsSettings, _appSettings, _serviceResolver);
             window.Show();
         }
 
@@ -190,7 +187,7 @@ namespace MicroMail
 
         private void StartAccount(Account account)
         {
-            var service = GetIncomingServiceForAccount(account);
+            var service = _serviceResolver.Resolve(account.ProtocolType);
 
             if (service == null) return;
 
@@ -204,25 +201,6 @@ namespace MicroMail
             
             _mailStorage.AddLoadedEmails(service.EmailGroup);
             service.Start();
-        }
-
-        private IFetchMailService GetIncomingServiceForAccount(Account account)
-        {
-            if (account == null) return null;
-
-            Type serviceType = null;
-
-            switch (account.ProtocolType)
-            {
-                case ProtocolTypeEnum.Imap:
-                    serviceType = typeof(ImapService);
-                    break;
-                case ProtocolTypeEnum.Pop3:
-                    serviceType = typeof (Pop3Service);
-                    break;
-            }
-
-            return _injector.Get(serviceType) as IFetchMailService;
         }
 
         private void ServiceMailFetchedHandler(object o)

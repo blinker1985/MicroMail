@@ -15,18 +15,18 @@
                 <StackPanel Margin="3">
                     <StackPanel Orientation="Horizontal">
                         <TextBlock Text="Refresh Time:" />
-                        <TextBox Name="RefreshTime" Width="30" Margin="3 0" Text="{Binding Path=Model.RefreshTime, Mode=TwoWay}" />
+                        <TextBox Name="RefreshTime" Width="30" Margin="3 0" Text="{Binding Path=ApplicationSettings.RefreshTime, Mode=TwoWay}" />
                         <TextBlock Text="seconds"/>
                     </StackPanel>
                     <StackPanel>
-                        <CheckBox Content="Fetch new mails automatically" IsChecked="{Binding Path=Model.FetchNewMail, Mode=TwoWay}" />
+                        <CheckBox Content="Fetch new mails automatically" IsChecked="{Binding Path=ApplicationSettings.FetchNewMail, Mode=TwoWay}" />
                     </StackPanel>
                 </StackPanel>
             </TabItem>
             <TabItem Header="Accounts">
                 <StackPanel>
                     <StackPanel Orientation="Horizontal" Margin="3">
-                        <ListBox Name="AccountsList" Width="200" Height="160" ItemsSource="{Binding Path=Model.Accounts}">
+                        <ListBox Name="AccountsList" Width="200" Height="160" ItemsSource="{Binding Path=AccountsSettings.Accounts}">
                             <ListBox.ItemTemplate>
                                 <DataTemplate>
                                     <TextBlock Text="{Binding Path=Name}" />

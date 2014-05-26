@@ -17,6 +17,7 @@ namespace MicroMail
             Bind<ApplicationWorker>().ToSelf();
             Bind<WindowsAllocator>().ToSelf();
             Bind<IMailStorage>().To<LocalMailStorage>().InSingletonScope();
+            Bind<OutgoingMailServiceResolver>().ToSelf();
         }
     }
 }

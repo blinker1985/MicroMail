@@ -18,29 +18,40 @@ namespace MicroMail.Services.Pop3
 
         public override void Login()
         {
-            SendCommand(new Pop3InitCommand(null));
+            SendCommandAsync(new Pop3InitCommand(null));
             //SendCommand(new Pop3ApopLoginCommand(Account, "", null), ServiceStatusEnum.Logging);
-            SendCommand(new Pop3UserCommand(Account.Login, null));
-            SendCommand(new Pop3PassCommand(Account, null));
+            SendCommandAsync(new Pop3UserCommand(Account.Login, null));
+            SendCommandAsync(new Pop3PassCommand(Account, null));
+        }
+
+        protected override bool TestLogin()
+        {
+            SendCommandSync(new Pop3InitCommand(null));
+            //SendCommand(new Pop3ApopLoginCommand(Account, "", null), ServiceStatusEnum.Logging);
+            SendCommandSync(new Pop3UserCommand(Account.Login, null));
+            SendCommandSync(new Pop3PassCommand(Account, null));
+
+            //TODO: Add login test.
+            return false;
         }
 
         public override void CheckMail()
         {
             CurrentStatus = ServiceStatusEnum.CheckingMail;
-            SendCommand(new Pop3StatCommand(StatResponder));
+            SendCommandAsync(new Pop3StatCommand(StatResponder));
         }
 
         public override void FetchMailBody(EmailModel email)
         {
             if (Account.DeleteReadEmails)
             {
-                SendCommand(new Pop3DeleteCommand(email.Id, null));
+                SendCommandAsync(new Pop3DeleteCommand(email.Id, null));
             }
         }
 
         public override void Stop()
         {
-            SendCommand(new Pop3QuitCommand(m => base.Stop()));
+            SendCommandAsync(new Pop3QuitCommand(m => base.Stop()));
         }
 
         private void StatResponder(Pop3StatResponse response)
@@ -67,7 +78,7 @@ namespace MicroMail.Services.Pop3
 
             foreach (var id in newIds)
             {
-                SendCommand(CreateRetrCommand(id, m =>
+                SendCommandAsync(CreateRetrCommand(id, m =>
                 {
                     fetchedCount++;
 

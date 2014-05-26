@@ -2,6 +2,7 @@
 using System.Globalization;
 using System.Windows;
 using System.Windows.Data;
+using MicroMail.Infrastructure;
 using MicroMail.Models;
 
 namespace MicroMail.Windows
@@ -11,12 +12,18 @@ namespace MicroMail.Windows
     /// </summary>
     public partial class SettingsWindow : ISingularWindow
     {
-        public AccountsSettingsModel Model { get; private set; }
+        private OutgoingMailServiceResolver _serviceResolver;
+
+        public AccountsSettingsModel AccountsSettings { get; private set; }
+        public ApplicationSettingsModel ApplicationSettings { get; private set; }
+
         public int Number { get; set; }
 
-        public SettingsWindow(AccountsSettingsModel accountsSettings)
+        public SettingsWindow(AccountsSettingsModel accountsSettings, ApplicationSettingsModel applicationSettings, OutgoingMailServiceResolver serviceResolver)
         {
-            Model = accountsSettings;
+            _serviceResolver = serviceResolver;
+            AccountsSettings = accountsSettings;
+            ApplicationSettings = applicationSettings;
             InitializeComponent();
         }
 
@@ -27,7 +34,8 @@ namespace MicroMail.Windows
         private void SaveButtonClickHandler(object sender, RoutedEventArgs e)
         {
             //TODO: try to connect connect with the inputed data to validate
-            Model.Save();
+            AccountsSettings.Save();
+            ApplicationSettings.Save();
             Close();
         }
 
@@ -38,7 +46,7 @@ namespace MicroMail.Windows
 
         private void AddAccount_ClickHandler(object sender, RoutedEventArgs e)
         {
-            var window = new AccountDialog();
+            var window = new AccountDialog(_serviceResolver);
             window.Closed += AccountDialog_ClosedHandler;
             window.Show();
         }
@@ -46,7 +54,7 @@ namespace MicroMail.Windows
         private void EditAccount_ClickHandler(object sender, RoutedEventArgs e)
         {
             var acc = (Account)AccountsList.SelectedItem;
-            var window = new AccountDialog(acc);
+            var window = new AccountDialog(acc, _serviceResolver);
             window.Show();
         }
 
@@ -58,7 +66,7 @@ namespace MicroMail.Windows
 
             if (window.IsSaved)
             {
-                Model.Accounts.Add(window.Account);
+                AccountsSettings.Accounts.Add(window.Account);
             }
         }
 
@@ -74,7 +82,7 @@ namespace MicroMail.Windows
 
             if (res == MessageBoxResult.Yes)
             {
-                Model.Accounts.Remove(acc);
+                AccountsSettings.Accounts.Remove(acc);
             }
         }
 

@@ -1,10 +1,11 @@
-﻿using MicroMail.Services.Imap.Responses;
+﻿using System;
+using MicroMail.Services.Imap.Responses;
 
 namespace MicroMail.Services.Imap.Commands
 {
     class ImapInitCommand : ServiceCommandBase<ImapInitResponse>
     {
-        public ImapInitCommand() : base(null)
+        public ImapInitCommand(Action<ImapInitResponse> callback) : base(callback)
         {
         }
 

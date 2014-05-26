@@ -12,27 +12,41 @@ namespace MicroMail.Services.Imap
 {
     public class ImapService : FetchMailServiceBase
     {
-
+        private string lastUid;
         public ImapService(EventBus eventBus) : base(eventBus)
         {
         }
 
         public override void Login()
         {
-            SendCommand(new ImapInitCommand());
-            SendCommand(new ImapLoginCommand(Account, null));
-            SendCommand(new ImapSelectRootFolderCommand(null));
+            SendCommandAsync(new ImapInitCommand(null));
+            SendCommandAsync(new ImapLoginCommand(Account, null));
+            
+        }
+
+        protected override bool TestLogin()
+        {
+            var result = false;
+            SendCommandSync(new ImapInitCommand(i =>
+                {
+                    if (i.IsSuccessful)
+                    {
+                        SendCommandSync(new ImapLoginCommand(Account, l => result = l.IsSuccessful));
+                    }
+                }));
+
+            return result;
         }
 
         public override void CheckMail()
         {
             CurrentStatus = ServiceStatusEnum.CheckingMail;
-            SendCommand(new ImapSearchUnseenCommand(CheckMailResponder));
+            SendCommandAsync(new ImapSelectRootFolderCommand(i => SendCommandAsync(new ImapSearchUnseenCommand(CheckMailResponder))));
         }
 
         public override void FetchMailBody(EmailModel email)
         {
-            SendCommand(new ImapFetchMailBodyCommand(email, r => EmailDecodingHelper.DecodeMailBody(r.MailBody, email)));
+            SendCommandAsync(new ImapFetchMailBodyCommand(email, r => EmailDecodingHelper.DecodeMailBody(r.MailBody, email)));
         }
 
         private IServiceCommand CreateFetchMailHeadersCommand(string id, Action<EmailModel> callback)
@@ -48,6 +62,7 @@ namespace MicroMail.Services.Imap
 
         private void CheckMailResponder(ImapSearchUnseenResponse response)
         {
+            lastUid = response.UnseenIds.LastOrDefault();
             FetchMailHeaders(response.UnseenIds);
         }
 
@@ -67,7 +82,7 @@ namespace MicroMail.Services.Imap
 
             foreach (var id in sortedIds)
             {
-                SendCommand(CreateFetchMailHeadersCommand(id, m =>
+                SendCommandAsync(CreateFetchMailHeadersCommand(id, m =>
                 {
                     fetchedCount++;
 

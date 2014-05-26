@@ -1,4 +1,5 @@
-﻿using System.Text.RegularExpressions;
+﻿using System;
+using System.Text.RegularExpressions;
 
 namespace MicroMail.Services.Imap.Responses
 {
@@ -13,6 +14,8 @@ namespace MicroMail.Services.Imap.Responses
             Body = match.Groups["body"].Value;
             Status = match.Groups["status"].Value;
             StatusMessage = match.Groups["statusMessage"].Value;
+
+            IsSuccessful = Status.Equals("ok", StringComparison.CurrentCultureIgnoreCase);
         }
 
     }

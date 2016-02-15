@@ -52,13 +52,6 @@
     <ApplicationIcon>icon.ico</ApplicationIcon>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="AxInterop.MSTSCLib">
-      <HintPath>lib\AxInterop.MSTSCLib.dll</HintPath>
-    </Reference>
-    <Reference Include="Interop.MSTSCLib">
-      <HintPath>lib\Interop.MSTSCLib.dll</HintPath>
-      <EmbedInteropTypes>True</EmbedInteropTypes>
-    </Reference>
     <Reference Include="Ninject">
       <HintPath>packages\Ninject.3.0.1.10\lib\net45-full\Ninject.dll</HintPath>
     </Reference>

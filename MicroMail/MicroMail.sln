@@ -1,6 +1,8 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 2012
+# Visual Studio 14
+VisualStudioVersion = 14.0.24720.0
+MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MicroMail", "MicroMail.csproj", "{E6C5EA8B-E2A1-4EE3-96A5-03BC59F8BF94}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MicroMailTests", "..\MicroMailTests\MicroMailTests.csproj", "{0EBB6104-079F-4807-A63B-CA27A7D4C761}"
